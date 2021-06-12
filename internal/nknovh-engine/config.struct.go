@@ -17,11 +17,6 @@ type configuration struct {
 		Interval int `json:"Interval"`
 		RemoveInterval int `json:"RemoveInterval"`
 	} `json:"NeighborPoll"`
-	ANStatusPoll struct {
-		ConnTimeout int `json:"ConnTimeout"`
-		Interval int `json:"Interval"`
-		RemoveInterval int `json:"RemoveInterval"`
-	} `json:"ANStatusPoll"`
 	MainPoll struct {
 		ConnTimeout int `json:"ConnTimeout"`
 		Interval int `json:"Interval"`
