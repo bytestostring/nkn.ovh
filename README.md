@@ -45,6 +45,9 @@ cp web/engine/db_config.php.example web/engine/db_config.php
 ```
 mv web/* /srv/www/%domain%/
 ```
+
+If you use NGINX, you must disallow the access to **logs** directory manually, it is important for security reason.
+
 6. Run daemon:
 
 ```
@@ -52,3 +55,4 @@ mv web/* /srv/www/%domain%/
 ```
 
 You can check journal files in the **logs** and **web/logs** folders.
+
