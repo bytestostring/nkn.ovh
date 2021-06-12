@@ -10,6 +10,7 @@ import (
 	 "regexp"
 	 "strings"
 	 "reflect"
+	 "net/http"
 	 "runtime"
 	 "sort"
 	 "log"
@@ -22,8 +23,13 @@ type NKNOVH struct {
 	sql *Mysql
 	NodeInfo *NodeInfo
 	threads *Threads
+	http *Http
 }
 
+type Http struct {
+	NeighborClient *http.Client
+	MainClient *http.Client
+}
 
 type Threads struct {
 	Counter int
@@ -101,6 +107,11 @@ func (o *NKNOVH) Build() error {
 			o.NodeInfo.ANArray[i][n] = make([]int, 0)
 		}
 	}
+	var netTransport = &http.Transport{DisableKeepAlives: true}
+	o.http = &Http{
+					MainClient: &http.Client{Timeout: time.Duration(o.conf.MainPoll.ConnTimeout)*time.Second,Transport: netTransport,},
+					NeighborClient: &http.Client{Timeout: time.Duration(o.conf.NeighborPoll.ConnTimeout)*time.Second,Transport: netTransport,},
+				}
 	return nil
 }
 
@@ -257,7 +268,7 @@ func (o *NKNOVH) fetchNodesInfo() error {
 		dbnode.Ip = k
 		dbnode.Ids = v
 
-		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Timeout: time.Duration(o.conf.MainPoll.ConnTimeout)}
+		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient}
 		wg.Add(1)
 		o.threads.Main <- struct{}{}
 		go o.getInfo(&wg, r, "UpdateNode", &o.threads.Main, dbnode)
@@ -312,9 +323,12 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 	var repeatInterval time.Duration = 3
 	var repeatTimeout time.Duration = 6
 
+	netTransport := &http.Transport{DisableKeepAlives: true}
+	client := &http.Client{Timeout: repeatTimeout*time.Second,Transport: netTransport,}
+
 	//dummy, no routines
 	var wg sync.WaitGroup
-	r := &JsonRPCConf{Ip:node_ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Timeout: repeatTimeout}
+	r := &JsonRPCConf{Ip:node_ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: client}
 	if len(answer) == 0 {
 		for i := 1; i < 4; i++ {
 			time.Sleep(repeatInterval * time.Second)
@@ -645,7 +659,7 @@ func (o *NKNOVH) updateAN() error {
 	}
 
 	for i := range o.NodeInfo.ips {
-		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Timeout: time.Duration(o.conf.NeighborPoll.ConnTimeout)}
+		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
 		wg.Add(1)
 		o.threads.Neighbors <- struct{}{}
 		go o.getInfo(&wg, r, "AddNeighborAN", &o.threads.Neighbors)
@@ -658,7 +672,7 @@ func (o *NKNOVH) updateAN() error {
 	}
 
 	for i := range o.NodeInfo.ips {
-		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Timeout: time.Duration(o.conf.NeighborPoll.ConnTimeout)}
+		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
 		wg.Add(1)
 		o.threads.Neighbors <- struct{}{}
 		go o.getInfo(&wg, r, "UpdateNodeAN", &o.threads.Neighbors)

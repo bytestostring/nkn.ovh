@@ -3,6 +3,7 @@ package nknovh_engine
 import (
 		"encoding/json"
 		"time"
+		"net/http"
 )
 type RPCResponse struct {
 	Error struct {
@@ -26,6 +27,7 @@ type JsonRPCConf struct {
 	Ip string
 	Method string
 	Params *json.RawMessage
+	Client *http.Client
 }
 
 type NodeSt struct {
