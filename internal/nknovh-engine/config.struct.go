@@ -23,8 +23,9 @@ type configuration struct {
 		EntriesPerNode int `json:"EntriesPerNode"`
 	} `json:"MainPoll"`
 	Threads struct {
-		MaxThreads int `json:"MaxThreads"`
-		DirtyThreads int `json:"DirtyThreads"`
+		Neighbors int `json:"Neighbors"`
+		Main int `json:"Main"`
+		Dirty int `json:"Dirty"`
 	} `json:"Threads"`
 	Wallets struct {
 		Interval int `json:"Interval"`

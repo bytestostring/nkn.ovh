@@ -25,8 +25,9 @@
 	},
 "Threads":
 	{
-		"MaxThreads": 384,
-		"DirtyThreads": 64
+		"Neighbors": 384,
+		"Main": 512,
+		"Dirty": 64
 	},
 "Wallets":
 	{
