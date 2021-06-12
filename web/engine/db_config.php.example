@@ -1,0 +1,10 @@
+<?php
+
+$db = ['host' => 'localhost',
+				'login' => '',
+				'db'    => '',
+				'password' => '',
+				'encoding' => 'utf8'
+];
+
+
