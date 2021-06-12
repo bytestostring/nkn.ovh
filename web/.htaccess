@@ -1,7 +1,10 @@
 RewriteEngine On
 RewriteBase /
+
+# Temporary redirect for compatibility
 RewriteCond %{REQUEST_URI} id/(.+)(/?)$ [NC]
 RewriteRule id/(.+)(/?)$ https://%{HTTP_HOST}/login/auth/$1/ [R=302,L] 
+
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
