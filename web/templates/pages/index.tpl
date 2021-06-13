@@ -1,5 +1,7 @@
 <script>
-	let index_src = `<div style="width: 180px;"><img src="/stat/images/nkn-logo.png" alt="NKN" style="max-width: 170px;"></div><div style="text-align: center; width: 250px;"><div id="error"></div><div id="setLang" style="margin-top: 15px"><span style="margin: 5px">{{LANG.index.label_select_lang}}:</span><select onchange="setLanguage(index_src, $(this).val(), function(lang) {$('#opt_lang_' + lang).prop('selected', 'selected')})">{{#each LANG.lang_values}}<option id="opt_lang_{{@key}}" value="{{@key}}">{{this}}</option>{{/each}}</select></div><input type="button" class="b-gen" value="{{LANG.index.gen_btn_val}}" onclick="genId(this)"><br><span id="s-enter"><input type="button" id="b-enter" class="b-enter" value="{{LANG.index.enter_btn_val}}" onclick="toggleEnter()"></span></div>`
+	let index_src = `<div style="width: 180px;"><img src="/stat/images/nkn-logo.png" alt="NKN" style="max-width: 170px;"></div><div style="text-align: center; width: 250px;"><div id="error"></div><div id="setLang" style="margin-top: 15px"><span style="margin: 5px">{{LANG.index.label_select_lang}}:</span><select onchange="setLanguage(index_src, $(this).val(), function(lang) {$('#opt_lang_' + lang).prop('selected', 'selected')})">{{#each LANG.lang_values}}<option id="opt_lang_{{@key}}" value="{{@key}}">{{this}}</option>{{/each}}</select></div><input type="button" class="b-gen" value="{{LANG.index.gen_btn_val}}" onclick="genId(this)"><br><span id="s-enter"><input type="button" id="b-enter" class="b-enter" value="{{LANG.index.enter_btn_val}}" onclick="toggleEnter()"></span></div>
+	{{{include "pages/modal/donate.tpl"}}}|m
+`
 
 	let view_switchLang = `<div class="switchLang" id="switchLang"><div id="site_version"></div>
 <span onclick="setLanguageView(view, 'en_US')" id="lang_en_US">EN</span><span onclick="setLanguageView(view, 'ru_RU')" id="lang_ru_RU">RU</span></div><div class="logo">
@@ -123,7 +125,7 @@ let view = `{{{include "pages/nav.tpl"}}}|m
 {{{include "pages/modal/roadmap.tpl"}}}|m
 {{{include "pages/modal/changelog.tpl"}}}|m
 {{{include "pages/modal/settings.tpl"}}}|m
-
+{{{include "pages/modal/donate.tpl"}}}|m
 `
 
 $(document).mouseup(function (e){
@@ -161,7 +163,10 @@ $(document).ready(function() {
 	});
 	} else {
 		$('.wrapper').prepend('<div class="content index" id="content"></div>')
-		setLanguage(index_src, "", function(lang) {$('#opt_lang_' + lang).prop('selected', 'selected')})
+		setLanguage(index_src, "", function(lang) {$('#opt_lang_' + lang).prop('selected', 'selected');	$('#donatelink').text(LANG.donate.title)})
 	}
+	$('#donatelink').click(function() {
+		showModal('donate')
+	})
 })
 </script>

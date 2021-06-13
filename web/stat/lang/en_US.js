@@ -19,7 +19,10 @@ var LANG = {
 		road: "Roadmap",
 		changelog: "Changelog",
 		settings: "Settings",
-		logout: "Logout"
+		logout: "Logout",
+	},
+	donate: {
+		title: "Donate"
 	},
 	attention: {
 		text: "Note! Save the link below for access to your account, add this address into your bookmarks!",
@@ -97,6 +100,9 @@ var LANG = {
 		},
 		roadmap: {
 			title: "Roadmap"
+		},
+		donate: {
+			title: "Donate",
 		},
 		changelog: {
 			title: "Changelog"

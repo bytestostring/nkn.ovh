@@ -21,6 +21,9 @@ var LANG = {
 		settings: "Настройки",
 		logout: "Выход"
 	},
+	donate: {
+		title: "Пожертвовать"
+	},
 	attention: {
 		text: "Важно! Сохраните ссылку для доступа, добавьте этот адрес в закладки!",
 		btn_text: "Сохранил, не показывать"
@@ -97,6 +100,9 @@ var LANG = {
 		},
 		roadmap: {
 			title: "Roadmap"
+		},
+		donate: {
+			title: "Пожертвовать",
 		},
 		changelog: {
 			title: "Список изменений"

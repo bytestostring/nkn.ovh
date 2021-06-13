@@ -5,7 +5,7 @@ src: url('/stat/fonts/Exo_2.0.ttf');
 
 .wrapper {
 	width: 100%;
-	min-height: calc(100vh - 60px);
+	min-height: calc(100vh - 40px);
     height: auto;
 }
 * {margin: 0;}
@@ -31,7 +31,7 @@ body {background:rgba(100, 150, 255, 0.3);color: #4a4d5d;font-family: 'Exo 2.0';
     margin: 0px auto;
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
-    background: rgba(100, 150, 255, 0.4);
+    background: rgba(70, 120, 255, 0.5);
     font-size: 14px;
     position:relative;
     overflow-x:hidden;
@@ -40,7 +40,7 @@ body {background:rgba(100, 150, 255, 0.3);color: #4a4d5d;font-family: 'Exo 2.0';
     right:0;
     text-align: center;
     width: 98%;
-    height: 45px;
+    height: 25px;
 }
 .footer a {
 	color: black;
@@ -49,7 +49,7 @@ body {background:rgba(100, 150, 255, 0.3);color: #4a4d5d;font-family: 'Exo 2.0';
 	display: flex;
     justify-content: center;
     align-items: center;
-	height:calc(100vh - 60px);
+	height:calc(100vh - 40px);
 }
 .content.in {
 	width: 100%;
