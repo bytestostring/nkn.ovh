@@ -25,7 +25,7 @@
 	},
 "DirtyPoll":
 	{
-		"ConnTimeout": 3,
+		"ConnTimeout": 2,
 		"Interval": 120
 	},
 "Threads":

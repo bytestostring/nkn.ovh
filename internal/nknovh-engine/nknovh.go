@@ -378,8 +378,8 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 
 	if dbnode.Dirty == true {
 		threads = &o.threads.Dirty
-		repeatInterval = 1
-		repeatTimeout = 3
+		repeatInterval = 0
+		repeatTimeout = 2
 	} else {
 		threads = &o.threads.Main
 		repeatInterval = 3
