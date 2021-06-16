@@ -42,7 +42,8 @@ CREATE TABLE `nodes` (
   `name` varchar(64) NOT NULL,
   `ip` varchar(20) NOT NULL,
   `created` datetime NOT NULL DEFAULT current_timestamp(),
-  `dirty` tinyint(1) NOT NULL DEFAULT 1
+  `dirty` tinyint(1) NOT NULL DEFAULT 1,
+  `dirty_fcnt` int(10) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `nodes_history` (
@@ -127,7 +128,8 @@ ALTER TABLE `daemon`
 ALTER TABLE `nodes`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `hash_id` (`hash_id`,`ip`),
-  ADD KEY `dirty` (`dirty`);
+  ADD KEY `dirty` (`dirty`),
+  ADD KEY `dirty_fcnt` (`dirty_fcnt`);
 
 ALTER TABLE `nodes_history`
   ADD PRIMARY KEY (`id`),
