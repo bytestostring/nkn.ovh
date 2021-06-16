@@ -1,5 +1,6 @@
 !.gitignore
 *.json
+/go.sum
 /nknovh
 /web/engine/db_config.php
 /test.go
