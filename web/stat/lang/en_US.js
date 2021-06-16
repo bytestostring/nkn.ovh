@@ -155,7 +155,7 @@ var LANG = {
 			4: "Incorrect IP in your list",
 			5: "Incorrect delimiter (less than two IP found)",
 			6: "Node name is too long (more that 32 symbols)",
-			7: "You cannot add over 5000 nodes to your NKNC account"
+			7: "You cannot add over 5000 nodes to your account"
 		},
 		getmynodesstat: {
 			1: "A database error occurred",
