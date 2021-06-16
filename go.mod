@@ -2,7 +2,7 @@ module nknc
 
 go 1.15
 
-replace nknovh-engine v1.0.7 => ./internal/nknovh-engine
+replace nknovh-engine v1.0.9 => ./internal/nknovh-engine
 
 require (
 	github.com/go-sql-driver/mysql v1.6.0
