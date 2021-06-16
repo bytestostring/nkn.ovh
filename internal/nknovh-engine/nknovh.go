@@ -24,6 +24,7 @@ type NKNOVH struct {
 	NodeInfo *NodeInfo
 	threads *Threads
 	http *Http
+	Nknsdk *Nknsdk
 }
 
 type Http struct {
@@ -97,7 +98,9 @@ func (o *NKNOVH) Build() error {
 	if err := o.walletCreate(); err != nil {
 		return err
 	}
-
+	if err := o.nknConnect(); err != nil {
+		return err
+	}
 	o.threads = &Threads{
 							Neighbors: make(chan struct{}, o.conf.Threads.Neighbors),
 							Main: make(chan struct{}, o.conf.Threads.Main),

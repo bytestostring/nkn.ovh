@@ -7,6 +7,10 @@ import (
 	nkn "github.com/nknorg/nkn-sdk-go"
 )
 
+type Nknsdk struct {
+	Wallet *nkn.Wallet
+}
+
 func (o *NKNOVH) walletCreate() error {
 	if _, err := os.Stat("external/wallet.json"); err == nil {
 		if _, err := os.Stat("external/wallet.pswd"); err == nil {
@@ -51,7 +55,7 @@ func (o *NKNOVH) walletCreate() error {
 	return nil
 }
 
-func (o *NKNOVH) walletPoll() error {
+func (o *NKNOVH) nknConnect() error {
 	data, err := ioutil.ReadFile("external/wallet.json")
 	if err != nil {
 		return err
@@ -70,20 +74,28 @@ func (o *NKNOVH) walletPoll() error {
 	if err := wallet.VerifyPassword(string(wpswd)); err != nil {
 		return err
 	}
+	t := new(Nknsdk)
+	t.Wallet = wallet
+	o.Nknsdk = t
+	return nil
+}
+
+func (o *NKNOVH) walletPoll() error {
 	go o.getPrices()
-	if err := o.fetchBalances(wallet); err != nil {
+	if err := o.fetchBalances(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *NKNOVH) fetchBalances(wallet *nkn.Wallet) error {
+func (o *NKNOVH) fetchBalances() error {
 
 	var (
 		id uint
 		nkn_wallet string
 		db_balance float64
 	)
+	var wallet *nkn.Wallet = o.Nknsdk.Wallet
 
 	//fetch wallets from the database
 	rows, err := o.sql.stmt["main"]["selectWallets"].Query()
