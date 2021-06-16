@@ -29,6 +29,7 @@ type NKNOVH struct {
 type Http struct {
 	NeighborClient *http.Client
 	MainClient *http.Client
+	DirtyClient *http.Client
 }
 
 type Threads struct {
@@ -42,6 +43,7 @@ type Threads struct {
 type NodeInfo struct {
 	ips []string
 	m_nodes map[string][]uint64
+	d_nodes map[string][]uint64
 	States []*NodeState
 	Neighbors []*NodeNeighbor
 	CounterFinish int
@@ -54,6 +56,7 @@ type NodeInfo struct {
 type DBNode struct {
 	Ip string
 	Ids []uint64
+	Dirty bool
 }
 
 func (o *NKNOVH) Build() error {
@@ -95,9 +98,19 @@ func (o *NKNOVH) Build() error {
 		return err
 	}
 
-	o.threads = &Threads{Neighbors: make(chan struct{}, o.conf.Threads.Neighbors), Main: make(chan struct{}, o.conf.Threads.Main), Dirty: make(chan struct{}, o.conf.Threads.Dirty)}
+	o.threads = &Threads{
+							Neighbors: make(chan struct{}, o.conf.Threads.Neighbors),
+							Main: make(chan struct{}, o.conf.Threads.Main),
+							Dirty: make(chan struct{}, o.conf.Threads.Dirty),
+						}
 	o.threads.Counter = 0
-	o.NodeInfo = &NodeInfo{mux: sync.RWMutex{}, muxCounter: sync.Mutex{}, ips: make([]string, 0), m_nodes: map[string][]uint64{}}
+	o.NodeInfo = &NodeInfo{
+							mux: sync.RWMutex{},
+							muxCounter: sync.Mutex{},
+							ips: make([]string, 0),
+							m_nodes: map[string][]uint64{},
+							d_nodes: map[string][]uint64{},
+						}
 	o.NodeInfo.ANArray = map[int]map[int][]int{}
 	o.NodeInfo.ANArrayMux = make([]sync.RWMutex, 0)
 	for i := 0; i < 256; i++ {
@@ -109,19 +122,22 @@ func (o *NKNOVH) Build() error {
 	}
 	var netTransport = &http.Transport{DisableKeepAlives: true}
 	o.http = &Http{
-					MainClient: &http.Client{Timeout: time.Duration(o.conf.MainPoll.ConnTimeout)*time.Second,Transport: netTransport,},
-					NeighborClient: &http.Client{Timeout: time.Duration(o.conf.NeighborPoll.ConnTimeout)*time.Second,Transport: netTransport,},
+					MainClient: &http.Client{Timeout: time.Duration(o.conf.MainPoll.ConnTimeout)*time.Second, Transport: netTransport,},
+					DirtyClient: &http.Client{Timeout: time.Duration(o.conf.DirtyPoll.ConnTimeout)*time.Second, Transport: netTransport,},
+					NeighborClient: &http.Client{Timeout: time.Duration(o.conf.NeighborPoll.ConnTimeout)*time.Second, Transport: netTransport,},
 				}
 	return nil
 }
 
 func (o *NKNOVH) Run() error {
-	var ch [3]chan bool = [3]chan bool{make(chan bool), make(chan bool), make(chan bool)}
+
+	var ch [4]chan bool = [4]chan bool{make(chan bool), make(chan bool), make(chan bool), make(chan bool)}
 	
 	//Run polls
 	go o.createPoll("neighborPoll", o.conf.NeighborPoll.Interval, ch[0], o.neighborPoll)
 	go o.createPoll("mainPoll", o.conf.MainPoll.Interval, ch[1], o.mainPoll)
 	go o.createPoll("walletPoll", o.conf.Wallets.Interval, ch[2], o.walletPoll)
+	go o.createPoll("dirtyPoll", o.conf.DirtyPoll.Interval, ch[3], o.dirtyPoll)
 
 	for i := 0; i < len(ch); i++ {
 		select {
@@ -139,6 +155,12 @@ func (o *NKNOVH) Run() error {
 			if msg1 == false {
 				log.Fatal("walletPoll exited")
 			}
+		break
+		case msg1 := <-ch[3]:
+			if msg1 == false {
+				log.Fatal("dirtyPoll exited")
+			}
+		break
 		}
 	}
 	return errors.New("Any poll has exited")
@@ -233,16 +255,27 @@ func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, f func(
 	return nil
 }
 
+
+func (o *NKNOVH) dirtyPoll() error {
+	if err := o.getNodesFromDB(true); err != nil {
+		return err
+	}
+	if err := o.fetchNodesInfo(true); err != nil {
+		return err
+	}
+	o.rmNodesByFcnt(180, 1)
+	o.rmNodesByFcnt(5040, 0)
+	return nil
+}
+
 func (o *NKNOVH) mainPoll() error {
-		if err := o.getNodesFromDB(); err != nil {
-			return err
-		}
-		if err := o.fetchNodesInfo(); err != nil {
-			return err
-		}
-		o.rmNodesByFcnt(180, 1)
-		o.rmNodesByFcnt(5040, 0)
-		return nil
+	if err := o.getNodesFromDB(false); err != nil {
+		return err
+	}
+	if err := o.fetchNodesInfo(false); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (o *NKNOVH) neighborPoll() error {
@@ -260,22 +293,36 @@ func (o *NKNOVH) neighborPoll() error {
 	return nil
 }
 
-func (o *NKNOVH) fetchNodesInfo() error {
+func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 	var wg sync.WaitGroup
-	for k, v := range o.NodeInfo.m_nodes {
+	var nodes_list *map[string][]uint64
+	var http_client *http.Client
+	var threads *chan struct {}
+
+	if dirty == true {
+		nodes_list = &o.NodeInfo.d_nodes
+		http_client = o.http.DirtyClient
+		threads = &o.threads.Dirty
+	} else {
+		nodes_list = &o.NodeInfo.m_nodes
+		http_client = o.http.MainClient
+		threads = &o.threads.Main
+	}
+
+	for k, v := range *nodes_list {
 
 		dbnode := new(DBNode)
 		dbnode.Ip = k
 		dbnode.Ids = v
-
-		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient}
+		dbnode.Dirty = dirty
+		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client}
 		wg.Add(1)
-		o.threads.Main <- struct{}{}
-		go o.getInfo(&wg, r, "UpdateNode", &o.threads.Main, dbnode)
+		*threads <- struct{}{}
+		go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
 	}
 	wg.Wait()
 	num_routines := runtime.NumGoroutine()
-	o.log.Syslog("func fetchNodesInfo is finished, active numbers of goroutines: " + strconv.Itoa(num_routines), "main")
+	o.log.Syslog("func fetchNodesInfo() is finished, active numbers of goroutines: " + strconv.Itoa(num_routines), "main")
 	return nil
 }
 
@@ -293,6 +340,11 @@ func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 					o.log.Syslog("Stmt insertNodeStats has returned an error: ("+err.Error()+")", "sql")
 				}
 			o.rmOldHistory(node_id)
+		}
+
+		// Exclude a node from dirtyPoll if it is in
+		if _, err := o.sql.stmt["main"]["updateNodeToMain"].Exec(&node_id); err != nil {
+			o.log.Syslog("Stmt updateNodeToMain has returned an error: ("+err.Error()+")", "sql")
 		}
 		//Add the last data
 		row := o.sql.stmt["main"]["selectNodeLastIdByNodeId"].QueryRow(&node_id)
@@ -320,8 +372,19 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 	dbnode := params.(*DBNode)
 
 	var node_ip string = dbnode.Ip
-	var repeatInterval time.Duration = 3
-	var repeatTimeout time.Duration = 6
+	var repeatInterval time.Duration
+	var repeatTimeout time.Duration
+	var threads *chan struct{}
+
+	if dbnode.Dirty == true {
+		threads = &o.threads.Dirty
+		repeatInterval = 1
+		repeatTimeout = 3
+	} else {
+		threads = &o.threads.Main
+		repeatInterval = 3
+		repeatTimeout = 6
+	}
 
 	netTransport := &http.Transport{DisableKeepAlives: true}
 	client := &http.Client{Timeout: repeatTimeout*time.Second,Transport: netTransport,}
@@ -333,7 +396,7 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 		for i := 1; i < 4; i++ {
 			time.Sleep(repeatInterval * time.Second)
 			wg.Add(1)
-			if err := o.getInfo(&wg, r, "UpdateNode", &o.threads.Main, params, true); err != nil {
+			if err := o.getInfo(&wg, r, "UpdateNode", threads, params, true); err != nil {
 				o.log.Syslog("[Retry " + strconv.Itoa(i) + "] No answer from node \"" + node_ip + "\"", "nodes")
 				continue
 			}
@@ -341,11 +404,16 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 			return nil
 		}
 	}
-	// Node gonna offline
+	// Node gonna offline and into the dirty poll
 	var last_id uint64
 	var failcnt int64
 	var ftf uint8
 	for _, node_id := range dbnode.Ids {
+
+		// switch to dirty
+		if _, err := o.sql.stmt["main"]["updateNodeToDirty"].Exec(&node_id); err != nil {
+			o.log.Syslog("Stmt updateNodeToDirty has returned an error: ("+err.Error()+")", "sql")
+		}
 		row := o.sql.stmt["main"]["selectNodeLastIdByNodeId"].QueryRow(&node_id)
 		err := row.Scan(&last_id, &failcnt, &ftf)
 		switch {
@@ -366,16 +434,24 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 	return nil
 }
 
-func (o *NKNOVH) getNodesFromDB() error {
-
-	rows, err := o.sql.stmt["main"]["selectAllIps"].Query()
+func (o *NKNOVH) getNodesFromDB(dirty bool) error {
+	var switch_dirty string
+	var nodes_list *map[string][]uint64
+	if dirty == true {
+		switch_dirty = "selectAllNodesDirty"
+		nodes_list = &o.NodeInfo.d_nodes
+	} else {
+		switch_dirty = "selectAllNodesNotDirty"
+		nodes_list = &o.NodeInfo.m_nodes
+	}
+	rows, err := o.sql.stmt["main"][switch_dirty].Query()
 	if err != nil { 
 		return err
 	}
 	defer rows.Close()
 
 	//clear map
-	o.NodeInfo.m_nodes = map[string][]uint64{}
+	*nodes_list = map[string][]uint64{}
 	var node_id uint64
 	var db_ip string
 	for rows.Next() {
@@ -383,7 +459,7 @@ func (o *NKNOVH) getNodesFromDB() error {
 			return err
 		}
 
-		o.NodeInfo.m_nodes[db_ip] = append(o.NodeInfo.m_nodes[db_ip], node_id)
+		(*nodes_list)[db_ip] = append((*nodes_list)[db_ip], node_id)
 	}
 	return nil
 }
@@ -549,8 +625,10 @@ func (o *NKNOVH) getInfo(wg *sync.WaitGroup, obj *JsonRPCConf, inside_method str
 		} else {
 			reflect.ValueOf(o).MethodByName(inside_method).Call([]reflect.Value{reflect.ValueOf(&data.State)})
 		}
+	break
 	case "getneighbor":
 		reflect.ValueOf(o).MethodByName(inside_method).Call([]reflect.Value{reflect.ValueOf(&data.Neighbor)})
+	break
 	}
 
 	// check for no-goroutine recursive function

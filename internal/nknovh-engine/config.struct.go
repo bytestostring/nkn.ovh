@@ -22,6 +22,10 @@ type configuration struct {
 		Interval int `json:"Interval"`
 		EntriesPerNode int `json:"EntriesPerNode"`
 	} `json:"MainPoll"`
+	DirtyPoll struct {
+		ConnTimeout int `json:"ConnTimeout"`
+		Interval int `json:"Interval"`
+	} `json:"DirtyPoll"`
 	Threads struct {
 		Neighbors int `json:"Neighbors"`
 		Main int `json:"Main"`
