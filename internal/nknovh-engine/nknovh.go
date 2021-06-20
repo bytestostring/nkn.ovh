@@ -137,10 +137,10 @@ func (o *NKNOVH) Run() error {
 	var ch [4]chan bool = [4]chan bool{make(chan bool), make(chan bool), make(chan bool), make(chan bool)}
 	
 	//Run polls
-	go o.createPoll("neighborPoll", o.conf.NeighborPoll.Interval, ch[0], o.neighborPoll)
-	go o.createPoll("mainPoll", o.conf.MainPoll.Interval, ch[1], o.mainPoll)
-	go o.createPoll("walletPoll", o.conf.Wallets.Interval, ch[2], o.walletPoll)
-	go o.createPoll("dirtyPoll", o.conf.DirtyPoll.Interval, ch[3], o.dirtyPoll)
+	go o.createPoll("neighborPoll", o.conf.NeighborPoll.Interval, ch[0], false, o.neighborPoll)
+	go o.createPoll("mainPoll", o.conf.MainPoll.Interval, ch[1], true, o.mainPoll)
+	go o.createPoll("walletPoll", o.conf.Wallets.Interval, ch[2], false, o.walletPoll)
+	go o.createPoll("dirtyPoll", o.conf.DirtyPoll.Interval, ch[3], true, o.dirtyPoll)
 
 	for i := 0; i < len(ch); i++ {
 		select {
@@ -214,7 +214,7 @@ func (o *NKNOVH) getANFromDB() error {
 }	
 
 
-func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, f func() error) error {
+func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, even bool, f func() error) error {
 	o.log.Syslog(pollName + " is starting...", "main")
 	o.log.Syslog("[" + pollName + "] Waiting for syncing", "main")
 
@@ -229,13 +229,13 @@ func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, f func(
 	var inside_error bool
 
 	// Sync
-	sleeping(time.Duration(time.Now().Second())*time.Second + time.Duration(time.Now().Nanosecond())*time.Nanosecond, 60)
+	sleeping(time.Duration(time.Now().Second())*time.Second + time.Duration(time.Now().Nanosecond())*time.Nanosecond, 60, even)
 	o.log.Syslog(pollName + " loop is starting!", "main")
 	for {
 		iteration_start = time.Now()
 		if inside_error == true {
 			inside_error = false
-			sleeping(iteration_time, dtime)
+			sleeping(iteration_time, dtime, even)
 		}
 
 		//Run something
@@ -252,7 +252,7 @@ func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, f func(
 		iteration_average = iteration_all / time.Duration(lap)
 		o.log.Syslog("["+strconv.FormatUint(lap, 10)+"] ["+pollName+"] Cycle iteration time: "+iteration_time.String()+" (Average: "+iteration_average.String()+"); Sleeping", "cycles")
 		lap++
-		sleeping(iteration_time, dtime)
+		sleeping(iteration_time, dtime, even)
 	}
 	ch <- false
 	return nil
