@@ -1,0 +1,19 @@
+[Unit]
+Description=NKNOVH Golang Daemon
+DefaultDependencies=no
+After=network.target
+
+[Service]
+Type=simple
+User=%user%
+Group=%group%
+WorkingDirectory=/path_to_datadir
+ExecStart=/path_to_datadir/nknovh
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target
+
+
