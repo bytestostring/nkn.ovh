@@ -820,15 +820,15 @@ func (o *NKNOVH) searchIP(ip string) (int, error) {
 	ip_split = strings.Split(ip, ".")
 		if len(ip_split) < 1 {
 			o.log.Syslog("IP is not splitted", "main")
-			return 1, createErr("IP is not splitted")
+			return 1, errors.New("IP is not splitted")
 		}
 		if i_first, err = strconv.Atoi(ip_split[0]); err != nil {
 			o.log.Syslog("Cannot ParseInt ip_split[0]", "main")
-			return 1, createErr("Cannot ParseInt ip_split[0]")
+			return 1, errors.New("Cannot ParseInt ip_split[0]")
 		}
 		if i_second, err = strconv.Atoi(ip_split[1]); err != nil {
 			o.log.Syslog("Cannot ParseInt ip_split[1]", "main")
-			return 1, createErr("Cannot ParseInt ip_split[1]")
+			return 1, errors.New("Cannot ParseInt ip_split[1]")
 		}
 	ip2int = IP4toInt(ip)
 	
