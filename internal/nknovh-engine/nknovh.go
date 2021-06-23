@@ -6,14 +6,12 @@ import (
 	 "strconv"
 	 "encoding/json"
 	 "sync"
-	// "fmt"
 	 "regexp"
 	 "strings"
 	 "reflect"
 	 "net/http"
 	 "runtime"
 	 "sort"
-	 "log"
 	 "errors"
 	 )
 
@@ -146,22 +144,22 @@ func (o *NKNOVH) Run() error {
 		select {
 		case msg1 := <-ch[0]:
 			if msg1 == false {
-				log.Fatal("neighborPoll exited")
+				return errors.New("Neighbors Poll has ended")
 			}
 		break
 		case msg1 := <-ch[1]:
 			if msg1 == false {
-				log.Fatal("mainPoll exited")
+				return errors.New("Main Poll has ended")
 			}
 		break
 		case msg1 := <-ch[2]:
 			if msg1 == false {
-				log.Fatal("walletPoll exited")
+				return errors.New("Wallet Poll has ended")
 			}
 		break
 		case msg1 := <-ch[3]:
 			if msg1 == false {
-				log.Fatal("dirtyPoll exited")
+				return errors.New("Dirty Poll has ended")
 			}
 		break
 		}
