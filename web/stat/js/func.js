@@ -649,18 +649,12 @@ function sortedBy() {
 		} else {
 			CLIENT.nodes.sort(function(a,b) {return a.RelaysPerHour60 - b.RelaysPerHour60;})
 		} 
-	} else if (CLIENT.sort == "t_relay360") {
+	} else if (CLIENT.sort == "t_version") {
 		if (CLIENT.sort_type == "ASC") {
-			CLIENT.nodes.sort(function(a,b) {return b.RelaysPerHour360 - a.RelaysPerHour360;})
+			CLIENT.nodes.sort(function(a,b) {return (b.Version > a.Version) ? 1 : ((a.Version > b.Version) ? -1 : 0);} )
 		} else {
-			CLIENT.nodes.sort(function(a,b) {return a.RelaysPerHour360 - b.RelaysPerHour360;})
-		} 
-	} else if (CLIENT.sort == "t_relay1440") {
-		if (CLIENT.sort_type == "ASC") {
-			CLIENT.nodes.sort(function(a,b) {return b.RelaysPerHour1440 - a.RelaysPerHour1440;})
-		} else {
-			CLIENT.nodes.sort(function(a,b) {return a.RelaysPerHour1440 - b.RelaysPerHour1440;})
-		} 
+			CLIENT.nodes.sort(function(a,b) {return (a.Version > b.Version) ? 1 : ((b.Version > a.Version) ? -1 : 0);})
+		}
 	} else if (CLIENT.sort == "t_latestup") {
 		if (CLIENT.sort_type == "ASC") {
 			CLIENT.nodes.sort(function(a,b) {return b.Currtimestamp - a.Currtimestamp;})
@@ -682,8 +676,6 @@ function parseNodes() {
 	var sumRelaysPerHour = 0
 	var sumRelaysPerHour10 = 0
 	var sumRelaysPerHour60 = 0
-	var sumRelaysPerHour360 = 0
-	var sumRelaysPerHour1440 = 0
 	var averageRelays = 0
 	var averageUptime = 0
 	var sumOffline = 0
@@ -721,19 +713,11 @@ function parseNodes() {
 			} else {
 				Relays60ViewK = "N/A";
 			}
-			if (item.RelaysPerHour360 > 0) {
-				sumRelaysPerHour360 += item.RelaysPerHour360
-				Relays360ViewK = (item.RelaysPerHour360/1000).toFixed(2) + "k"
+			if (item.Version != "") {
+				VersionView = item.Version
 			} else {
-				Relays360ViewK = "N/A";
+				VersionView = "N/A";
 			}
-			if (item.RelaysPerHour1440 > 0) {
-				sumRelaysPerHour1440 += item.RelaysPerHour1440
-				Relays1440ViewK = (item.RelaysPerHour1440/1000).toFixed(2) + "k"
-			} else {
-				Relays1440ViewK = "N/A";
-			}
-
 			if (item.Uptime >= 3600*24) {
 				UptimeView = (item.Uptime/(3600*24)).toFixed(2) + " d"
 			} else if (item.Uptime >= 3600) {
@@ -741,7 +725,7 @@ function parseNodes() {
 			} else {
 				UptimeView = item.Uptime + " s"
 			}
-			let node = `<div class="tr ${cl}" id="Node-${item.node_id}"><div class="td"><input type="checkbox" id="controlNode-${item.node_id}" name="controlNode-${item.node_id}" value="${item.node_id}"></div><div class="td">${item.name}</div><div class="td">${item.ip}</div><div class="td">${item.SyncState}</div><div class="td">${item.ProposalSubmitted}</div><div class="td">${item.Height}</div><div class="td">${UptimeView}</div><div class="td">${RelaysViewK}k</div><div class="td">${Relays10ViewK}</div><div class="td">${Relays60ViewK}</div><div class="td">${Relays360ViewK}</div><div class="td">${Relays1440ViewK}</div><div class="td">${latest_update}</div></div>`;
+			let node = `<div class="tr ${cl}" id="Node-${item.node_id}"><div class="td"><input type="checkbox" id="controlNode-${item.node_id}" name="controlNode-${item.node_id}" value="${item.node_id}"></div><div class="td">${item.name}</div><div class="td">${item.ip}</div><div class="td">${item.SyncState}</div><div class="td">${item.ProposalSubmitted}</div><div class="td">${item.Height}</div><div class="td">${UptimeView}</div><div class="td">${RelaysViewK}k</div><div class="td">${Relays10ViewK}</div><div class="td">${Relays60ViewK}</div><div class="td">${VersionView}</div><div class="td">${latest_update}</div></div>`;
 			$('#nodes_table').append(node)
 		} else {
 			if (item.Err == 1) {
@@ -774,8 +758,6 @@ function parseNodes() {
 	CLIENT.nodesSummary['RelaysPerHour'] = sumRelaysPerHour
 	CLIENT.nodesSummary['RelaysPerHour10'] = sumRelaysPerHour10
 	CLIENT.nodesSummary['RelaysPerHour60'] = sumRelaysPerHour60
-	CLIENT.nodesSummary['RelaysPerHour360'] = sumRelaysPerHour360
-	CLIENT.nodesSummary['RelaysPerHour1440'] = sumRelaysPerHour1440
 	CLIENT.nodesSummary['Nodes'] = sumNodes
 	CLIENT.nodesSummary['ActiveNodes'] = sumActiveNodes
 	if (sumNodes > 0) {
@@ -812,8 +794,6 @@ function calcNodesInfo() {
 	var r = CLIENT.nodesSummary['RelaysPerHour'] == 0 ? "N/A": (CLIENT.nodesSummary['RelaysPerHour']/1000).toFixed(2) + "k"
 	var r10 = CLIENT.nodesSummary['RelaysPerHour10'] == 0 ? "N/A": (CLIENT.nodesSummary['RelaysPerHour10']/1000).toFixed(2) + "k"
 	var r60 = CLIENT.nodesSummary['RelaysPerHour60'] == 0 ? "N/A": (CLIENT.nodesSummary['RelaysPerHour60']/1000).toFixed(2) + "k"
-	var r360 = CLIENT.nodesSummary['RelaysPerHour360'] == 0 ? "N/A": (CLIENT.nodesSummary['RelaysPerHour360']/1000).toFixed(2) + "k"
-	var r1440 = CLIENT.nodesSummary['RelaysPerHour1440'] == 0 ? "N/A": (CLIENT.nodesSummary['RelaysPerHour1440']/1000).toFixed(2) + "k"
 	var au = CLIENT.nodesSummary['averageUptime']
 	if (au >= 3600*24) {
 		UptimeView = (au/(3600*24)).toFixed(2) + " d"
@@ -824,7 +804,7 @@ function calcNodesInfo() {
 	} else {
 		UptimeView = au.toFixed(2) + " s"
 	}
-	let sumstat = `<div class="tr" id="sum_tr"><div class="td"></div><div class="td">${LANG.nodes_tables.b_sum_label}</div><div class="td">*</div><div class="td">*</div><div class="td">${CLIENT.nodesSummary['Proposal']}</div><div class="td">*</div><div class="td">${UptimeView}</div><div class="td">${r}</div><div class="td">${r10}</div><div class="td">${r60}</div><div class="td">${r360}</div><div class="td">${r1440}</div><div class="td">*</div></div>`
+	let sumstat = `<div class="tr" id="sum_tr"><div class="td"></div><div class="td">${LANG.nodes_tables.b_sum_label}</div><div class="td">*</div><div class="td">*</div><div class="td">${CLIENT.nodesSummary['Proposal']}</div><div class="td">*</div><div class="td">${UptimeView}</div><div class="td">${r}</div><div class="td">${r10}</div><div class="td">${r60}</div><div class="td">*</div><div class="td">*</div></div>`
 	$('#sum_tr').remove();
 	$('#tr_top').after(sumstat)
 

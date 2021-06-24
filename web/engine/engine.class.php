@@ -426,7 +426,7 @@ class Engine {
 				$nodes[$n]['RelaysPerHour'] = 0;	
 			}
 			$nodes[$n]['Height'] = $row['Height'];
-			$nodes[$n]['Version'] = $row['Version'];
+			$nodes[$n]['Version'] = strip_tags($row['Version']);
 			$nodes[$n]['node_id'] = $row['node_id'];
 
 			if ($row['SyncState'] == "OFFLINE") {
@@ -462,9 +462,8 @@ class Engine {
 
 		$opts = [
 					["rh" => 600, "max_diff" => 60, "elem" => 1],
-					["rh" => 3600, "max_diff" => 72, "elem" => 6],
-					["rh" => 3600*6, "max_diff" => 72, "elem" => 36],
-					["rh" => 3600*24, "max_diff" => 72, "elem" => 144]
+					["rh" => 3600, "max_diff" => 60, "elem" => 6],
+	
 				];
 		foreach ($tmp as $key => $val) {
 				foreach ($opts as $p) {
@@ -482,12 +481,6 @@ class Engine {
 			break;
 			case 3600:
 			$t = "RelaysPerHour60";
-			break;
-			case 3600*6:
-			$t = "RelaysPerHour360";
-			break;
-			case 3600*24:
-			$t = "RelaysPerHour1440";
 			break;
 			default:
 			return false;

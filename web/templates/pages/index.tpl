@@ -109,8 +109,7 @@ let view = `{{{include "pages/nav.tpl"}}}|m
 <div class="td" id="t_relay" onclick="sort_nodes(this.id)">R/H</div>
 <div class="td" id="t_relay10" onclick="sort_nodes(this.id)">R/H 10m</div>
 <div class="td" id="t_relay60" onclick="sort_nodes(this.id)">R/H 60m</div>
-<div class="td" id="t_relay360" onclick="sort_nodes(this.id)">R/H 360m</div>
-<div class="td" id="t_relay1440" onclick="sort_nodes(this.id)">R/H 1440m</div>
+<div class="td" id="t_version" onclick="sort_nodes(this.id)">{{LANG.nodes_tables.col_version}}</div>
 <div class="td" id="t_latestup" onclick="sort_nodes(this.id)">{{LANG.nodes_tables.col_update}}</div>
 </div>
 </div>

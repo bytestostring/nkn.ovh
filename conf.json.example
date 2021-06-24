@@ -1,5 +1,5 @@
 {
-"Version": "1.0.9",
+"Version": "1.0.10",
 "Db":
 	[{
 		"Host": "path to /unix/socket.sock OR tcp host",
@@ -21,7 +21,7 @@
 	{
 		"ConnTimeout": 12,
 		"Interval": 120,
-		"EntriesPerNode": 145
+		"EntriesPerNode": 7
 	},
 "DirtyPoll":
 	{

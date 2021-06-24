@@ -71,6 +71,7 @@ var LANG = {
 		col_proposal: "Proposed",
 		col_height: "Высота блока",
 		col_uptime: "Время работы",
+		col_version: "Версия",
 		col_update: "Последнее обновление",
 		b_sum_label: "Суммарно",
 		b_node_waiting: "Ожидает обновления",

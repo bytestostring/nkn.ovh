@@ -71,6 +71,7 @@ var LANG = {
 		col_proposal: "Proposed",
 		col_height: "Block height",
 		col_uptime: "Uptime",
+		col_version: "Version",
 		col_update: "Latest update",
 		b_sum_label: "Total",
 		b_node_waiting: "Waiting for update",
