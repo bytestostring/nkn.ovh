@@ -90,7 +90,7 @@ var LANG = {
 			label_nodeIP_placeholder: "IPv4 address only",
 			label_nodeName: "Node name",
 			label_nodeName_placeholder: "Optional, 32 characters max",
-			label_recommend: "We recommend you to use short names (less than 10 characters)",
+			label_recommend: "We recommend you use short names (less than 10 characters)",
 			label_multi_nodeIP: "IP list",
 			label_multi_prompt: "IP addresses must be separated by either commas, spaces or line breaks. Only one of the ways can be used simultaneously.",
 			label_multi_nodeName: "Nodes prefix (name)",
