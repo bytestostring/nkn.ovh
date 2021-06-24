@@ -4,6 +4,9 @@
 <div class="modal-header">
 <h3 class="modal-title">{{LANG.modal.changelog.title}}</h3> <a href="#close" title="{{LANG.modal.close}}" class="close" onclick="$('#changelogModal').hide(200)">X</a></div><div class="modal-body">
 {{#if_eq LANG.current_lang "ru_RU"}}
+	<h4>21 Мая - 24 Июня 2021 (Версия 1.0.10)</h4>
+	<p>- Множество важных изменений во внутренней логике работы.</p>
+	<p>- Открыт исходный код проекта: <a href="https://github.com/bytestostring/nkn.ovh" target="_blank">github.com/bytestostring/nkn.ovh</a></p>
 	<h4>20 Мая 2021</h4>
 	<p>- Добавлено автоматическое удаление неактивных узлов в статусе "Offline". Если узел находится более семи дней в статусе "Offline", он будет удален автоматически. Если узел ни разу не ответил корректно с момента добавления, он будет удален через 6 часов после добавления.</p>
 	<p>- [Backend] Множество изменений во внутренней логике опроса узлов.</p>
@@ -32,6 +35,9 @@
 	<p>- Незначительные исправления в NKNC Daemon (Golang).</p>
 {{/if_eq}}
 {{#if_eq LANG.current_lang "en_US"}}
+	<h4>21 May - 24 June 2021 (Version 1.0.10)</h4>
+	<p>- Many important changes in internal logic of the site.</p>
+	<p>- The project is open source: <a href="https://github.com/bytestostring/nkn.ovh" target="_blank">github.com/bytestostring/nkn.ovh</a></p>
 	<h4>20 May 2021</h4>
 	<p>- Added automatic removal of inactive nodes. If a node has been Offline for more than seven days, it will be removed. If a node hasn't responded correctly to the server within 6 hours since the node was added, it will also be removed.</p>
 	<p>- [Backend] Many changes in the internal logic of user nodes' polling.</p>
