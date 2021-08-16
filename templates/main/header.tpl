@@ -8,12 +8,16 @@
 	<script src="/static/js/wasm_exec.js"></script>
 	<script>
 	if (typeof WebAssembly === "object") {
- 		const go = new Go();
-		WebAssembly.instantiateStreaming(fetch("/static/lib.wasm?{{wasm_etag}}|m"), go.importObject).then((result) => {
-				go.run(result.instance);
-		});
+		const go = new Go();
+	        fetch("/static/lib.wasm?{{wasm_etag}}|m").then(response =>
+                        response.arrayBuffer()
+                ).then(bytes =>
+                        WebAssembly.instantiate(bytes, go.importObject)
+                ).then(result => {
+                        go.run(result.instance);
+                });
 	} else {
-	alert("Your browser is not support WebAssembly");
+		alert("Your browser is not support WebAssembly");
 	}
 	</script>
 </head>
