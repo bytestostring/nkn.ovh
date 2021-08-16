@@ -4,6 +4,11 @@
 <div class="modal-header">
 <h3 class="modal-title">{{.LANG.Modal.changelog.title}}</h3> <a href="#close" title="{{.LANG.Modal.control.close}}" class="close" onclick="closeModal('changelog')">X</a></div><div class="modal-body">
 {{if eq .LANG.CurrentLang "ru_RU"}}
+	<h4>16 Августа 2021 (Версия 1.1.0)</h4>
+	<p>- Добавлен обратный отсчет до следующего запроса по API.</p>
+	<p>- Добавлен постраничный вывод таблицы узлов.</p>
+	<p>- Множество изменений внутренней логики сайта.</p>
+	<p>- Поддержка Telegram уведомлений назначена на следующий релиз v1.1.1</p>
 	<h4>21 Мая - 24 Июня 2021 (Версия 1.0.10)</h4>
 	<p>- Множество важных изменений во внутренней логике работы.</p>
 	<p>- Открыт исходный код проекта: <a href="https://github.com/bytestostring/nkn.ovh" target="_blank">github.com/bytestostring/nkn.ovh</a></p>
@@ -35,6 +40,11 @@
 	<p>- Незначительные исправления в NKNC Daemon (Golang).</p>
 {{end}}
 {{if eq .LANG.CurrentLang "en_US"}}
+	<h4>16 August 2021 (Version 1.1.0)</h4>
+	<p>- Added countdown to next API request.</p>
+	<p>- Added pagination of the node table.</p>
+	<p>- Many changes in internal logic of the site.</p>
+	<p>- Telegram notification support will be added in next release v1.1.1</p>
 	<h4>21 May - 24 June 2021 (Version 1.0.10)</h4>
 	<p>- Many important changes in internal logic of the site.</p>
 	<p>- The project is open source: <a href="https://github.com/bytestostring/nkn.ovh" target="_blank">github.com/bytestostring/nkn.ovh</a></p>
