@@ -1,0 +1,102 @@
+{
+"Version": "1.1.0",
+"HttpServer":
+        {
+                "Port": 8081
+        },
+"Db":
+	[{
+		"Host": "path to /unix/socket.sock OR tcp host",
+		"Login": "db_login",
+		"Database": "db_name",
+		"Password": "db_pass",
+		"DbType":  "mysql",
+		"MaxOpenConns": 128,
+		"MaxIdleConns": 32,
+		"InsideName": "main"
+	}],
+"NeighborPoll":
+        {
+                "ConnTimeout": 12,
+                "Interval": 3000,
+                "RemoveInterval": 30
+        },
+"MainPoll":
+	{
+		"ConnTimeout": 12,
+		"Interval": 120,
+		"EntriesPerNode": 7
+	},
+"DirtyPoll":
+	{
+		"ConnTimeout": 2,
+		"Interval": 120
+	},
+"Threads":
+	{
+		"Neighbors": 384,
+		"Main": 512,
+		"Dirty": 64
+	},
+"Wallets":
+	{
+		"Interval": 60
+	},
+"Messengers": {
+	"Telegram": {
+		"Use": false,
+		"Token": ""
+	}
+},
+"TrustedProxies":
+	[ ,
+	 "127.0.0.1"
+	],
+"SeedList":
+	[
+	 "mainnet-seed-0001.nkn.org",
+	 "mainnet-seed-0002.nkn.org",
+	 "mainnet-seed-0003.nkn.org",
+	 "mainnet-seed-0004.nkn.org",
+	 "mainnet-seed-0005.nkn.org",
+	 "mainnet-seed-0006.nkn.org",
+	 "mainnet-seed-0007.nkn.org",
+	 "mainnet-seed-0008.nkn.org",
+	 "mainnet-seed-0009.nkn.org",
+	 "mainnet-seed-0010.nkn.org",
+	 "mainnet-seed-0011.nkn.org",
+	 "mainnet-seed-0012.nkn.org",
+	 "mainnet-seed-0013.nkn.org",
+	 "mainnet-seed-0014.nkn.org",
+	 "mainnet-seed-0015.nkn.org",
+	 "mainnet-seed-0016.nkn.org",
+	 "mainnet-seed-0017.nkn.org",
+	 "mainnet-seed-0018.nkn.org",
+	 "mainnet-seed-0019.nkn.org",
+	 "mainnet-seed-0020.nkn.org",
+	 "mainnet-seed-0021.nkn.org",
+	 "mainnet-seed-0022.nkn.org",
+	 "mainnet-seed-0023.nkn.org",
+	 "mainnet-seed-0024.nkn.org",
+	 "mainnet-seed-0025.nkn.org",
+	 "mainnet-seed-0026.nkn.org",
+	 "mainnet-seed-0027.nkn.org",
+	 "mainnet-seed-0028.nkn.org",
+	 "mainnet-seed-0029.nkn.org",
+	 "mainnet-seed-0030.nkn.org",
+	 "mainnet-seed-0031.nkn.org",
+	 "mainnet-seed-0032.nkn.org",
+	 "mainnet-seed-0033.nkn.org",
+	 "mainnet-seed-0034.nkn.org",
+	 "mainnet-seed-0035.nkn.org",
+	 "mainnet-seed-0036.nkn.org",
+	 "mainnet-seed-0037.nkn.org",
+	 "mainnet-seed-0038.nkn.org",
+	 "mainnet-seed-0039.nkn.org",
+	 "mainnet-seed-0040.nkn.org",
+	 "mainnet-seed-0041.nkn.org",
+	 "mainnet-seed-0042.nkn.org",
+	 "mainnet-seed-0043.nkn.org",
+	 "mainnet-seed-0044.nkn.org"
+	]
+},
