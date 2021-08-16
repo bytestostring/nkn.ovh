@@ -148,50 +148,30 @@
 	},
 	"answers": {
 		"default": {
-			"1": "A database error occurred",
-			"2": "A database error occurred",
-			"4": "An error occured"
-		},
-		"enter": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred",
-		  "254": "Incorrect ID length",
-		  "255": "ID not found"
-		},
-		"genId": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred",
-		  "3": "You have already created 3 ID. Please wait 30 minutes"
-		},
-		"rmnodes": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred",
-		  "3": "Incorrect POST query"
-		},
-		"addnodes": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred",
-		  "3": "Incorrect POST query",
-		  "4": "Incorrect IP in your list",
-		  "5": "Incorrect delimiter (less than two IP found)",
-		  "6": "Node name is too long (more that 32 symbols)",
-		  "7": "You cannot add over 5000 nodes to your account"
-		},
-		"getmynodesstat": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred"
-		},
-		"getmywallets": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred"
-		},
-		"settings": {
-		  "1": "A database error occurred",
-		  "2": "A database error occurred",
-		  "4": "Wrong the array length",
-		  "5": "Wrong the address length",
-		  "6": "Wrong an NKN address",
-		  "7": "Rejected! Incorrect wallet address"
+			"1": "Cannot execute SQL query",
+			"2": "Nodes added partially",
+			"3": "No info/entries in a database",
+			"4": "An error occured",
+			"5": "Incorrect query",
+			"6": "Name of node(-s) too long or incorrect format.",
+			"7": "Multiple variable must be boolean",
+			"8": "Ip variable must be valid string",
+			"9": "Incorrect ip address(-es)",
+			"10": "Passed ip address(-es) not IPv4",
+			"11": "Passed ip address(-es) not in public network",
+			"12": "Nodes limit exceeded",
+			"13": "Wrong delimiter passed",
+			"14": "The nodes weren't added since they had been already created.",
+			"15": "Wrong data of NodesId passed",
+			"16": "Wallets overflow",
+			"17": "One or more of the passed wallets are not in the correct format",
+			"18": "One or more Id of passed nodes are not found. No changes.",
+			"240": "GenRandomSHA256 returned error",
+			"252": "You have created at least 3 ID for the latest 30 minutes",
+			"253": "You have no authorization",
+			"254": "Incorrect ID length",
+			"255": "Passed ID is not found",
+			"500": "Internal server error"
 		}
 	}
 }
