@@ -146,6 +146,7 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 				if c.HashId == -1 {
 					//Authorization needed
 					res := o.Web.Response[253]
+					res.Method = q.Method
 					if b, err := json.Marshal(res); err == nil {
 						wsutil.WriteServerMessage(conn, op, b)
 						continue	

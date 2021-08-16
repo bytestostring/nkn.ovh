@@ -1,0 +1,20 @@
+#
+# Example .htaccess for Apache proxy server
+# Apache must includes mod_rewrite, mod_proxy, mod_proxy_wstunnel
+#
+
+DirectoryIndex disabled
+RewriteEngine On
+RewriteBase /
+RewriteCond %{SERVER_PORT} !^443$
+RewriteCond %{HTTP_USER_AGENT} !^$
+RewriteCond %{HTTP:Upgrade} !=websocket
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,NC,R=301]
+
+RewriteCond %{HTTP:Upgrade} ^websocket$ [NC]
+RewriteRule ^(.*)$ ws://127.0.0.1:8082/$1 [L,P]
+
+RewriteCond %{HTTP:Upgrade} !websocket [NC]
+RewriteRule ^(.*)$ http://127.0.0.1:8082%{REQUEST_URI} [L,P]
+
+

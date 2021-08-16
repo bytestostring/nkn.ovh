@@ -62,6 +62,19 @@ func (c *CLIENT) apiGenId(data *WSReply) interface{} {
 
 func (c *CLIENT) apiAuth(data *WSReply) interface{} {
 	if data.Error  {
+		if c.Hash != "" {
+			c.Hash = ""
+			c.W.LocalStorage("remove", "hash")
+			c.mux.AutoUpdater.Lock()
+			if c.AutoUpdaterIsStarted {
+				c.AutoUpdaterStopCh <- true
+			}
+			c.mux.AutoUpdater.Unlock()
+			history := js.Global().Get("history")
+			history.Call("pushState", nil, nil, "/")
+			go c.Run()
+		}
+
 		c.GenErr(data.ErrMessage, "default", data.Code)
 		return false
 	}
