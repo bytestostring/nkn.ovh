@@ -13,7 +13,7 @@
 	<p><strong> - R/H Nm</strong> – means relays per hour for the latest N minutes of node uptime.</p>
 	<p><strong>-  N/A</strong> – means no information is available at this moment..</p>
 	<p><br></p>
-	<h4>Node status:</h4>
+	<h3>Node status:</h3>
 		<p><strong> - Out of NKN Network</strong> means node is disconnected from the main NKN network and operates offline. It can't get rewards from mining and its statistics doesn't affect the summary statistics on the nodes table.</p>
 		<p><strong> - PERSIST_FINISHED</strong> means node is synced and mining now.</p>
 		<p><strong> - WAIT_FOR_SYNCING</strong> means node is waiting for synchronization.</p>
