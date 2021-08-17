@@ -49,6 +49,8 @@ type NodeInfo struct {
 	CounterFinish int
 	muxCounter sync.Mutex
 	mux sync.RWMutex
+	ANLast map[string]uint64
+	ANLastMux sync.RWMutex
 	ANArray map[int]map[int][]int
 	ANArrayMux []sync.RWMutex
 }
@@ -118,6 +120,7 @@ func (o *NKNOVH) Build() error {
 							ips: make([]string, 0),
 							m_nodes: map[string][]uint64{},
 							d_nodes: map[string][]uint64{},
+							ANLast: map[string]uint64{},
 						}
 	o.NodeInfo.ANArray = map[int]map[int][]int{}
 	o.NodeInfo.ANArrayMux = make([]sync.RWMutex, 0)
@@ -287,15 +290,50 @@ func (o *NKNOVH) mainPoll() error {
 }
 
 func (o *NKNOVH) neighborPoll() error {
-	if err := o.getANFromDB(); err != nil {
+
+	if _, err := o.sql.stmt["main"]["clearAN"].Exec(); err != nil {
 		return err
 	}
-
+	if err := o.dbIpsToArray(); err != nil {
+		return err
+	}
 	if err := o.updateAN(); err != nil {
 		return err
 	}
-
 	if err := o.saveANStatus(); err != nil {
+		return err
+	}
+	if err := o.swapAndClearAN(); err != nil {
+		return err
+	} 
+	return nil
+}
+
+func (o *NKNOVH) swapAndClearAN() error {
+	tx, err := o.sql.db["main"].Begin()
+	o.NodeInfo.ANLastMux.Lock()
+	defer o.NodeInfo.ANLastMux.Unlock()
+	if err != nil {
+		o.log.Syslog("Cannot create tx: " + err.Error(), "sql")
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = tx.Stmt(o.sql.stmt["main"]["clearANStats"]).Exec(); err != nil {
+		o.log.Syslog("Cannot execute clearANStats: " + err.Error(), "sql")
+		return err
+	}
+	if _, err = tx.Stmt(o.sql.stmt["main"]["copyANtoStats"]).Exec(); err != nil {
+		o.log.Syslog("Cannot execute copyANStats: " + err.Error(), "sql")
+		return err
+	}
+
+	if _, err = tx.Stmt(o.sql.stmt["main"]["clearAN"]).Exec(); err != nil {
+		o.log.Syslog("Cannot execute clearAN: " + err.Error(), "sql")
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		o.log.Syslog("Cannot commit transaction (swapAndClearAN): " + err.Error(), "sql")
 		return err
 	}
 	return nil
@@ -334,6 +372,33 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 	return nil
 }
 
+func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
+	var id uint64
+	var timestamp uint64
+	var last_timestamp uint64
+	var ok bool
+	var correction uint64 = 600
+	timestamp = uint64(time.Now().Unix())
+	diff := timestamp - uint64(node.Result.Uptime) + correction 
+	o.NodeInfo.ANLastMux.RLock()
+	defer o.NodeInfo.ANLastMux.RUnlock()
+	row := o.sql.stmt["main"]["selectIdByIpANLast"].QueryRow(dbnode.Ip)
+	err := row.Scan(&id)
+	switch {
+		case err == sql.ErrNoRows:
+			if last_timestamp, ok = o.NodeInfo.ANLast["Timestamp"]; !ok {
+				return nil, false
+			}
+			if diff < last_timestamp {
+				return nil, true
+			}
+		case err != nil:
+			return err, false
+	}
+	return nil, false
+}
+
+
 func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 	dbnode := params.(*DBNode)
 	minute := time.Now().Minute()
@@ -341,7 +406,6 @@ func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 	var failcnt int64
 	var ftf uint8
 	for _, node_id := range dbnode.Ids {
-
 		//Add historical data once per 10 minutes
 		if d := minute % 10; d == 0 {
 			if _, err := o.sql.stmt["main"]["insertNodeStats"].Exec(&node_id, &node.Result.ID, &node.Result.Currtimestamp, &node.Result.Height, &node.Result.ProposalSubmitted, &node.Result.ProtocolVersion, &node.Result.RelayMessageCount, &node.Result.SyncState, &node.Result.Uptime, &node.Result.Version); err != nil {
@@ -353,6 +417,11 @@ func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 		// Exclude a node from dirtyPoll if it is in
 		if _, err := o.sql.stmt["main"]["updateNodeToMain"].Exec(&node_id); err != nil {
 			o.log.Syslog("Stmt updateNodeToMain has returned an error: ("+err.Error()+")", "sql")
+		}
+
+		//Detect out of NKN Network
+		if err, b := o.isOutOfNetwork(dbnode, node); err == nil && b == true {
+			node.Result.SyncState = "OUT"
 		}
 		//Add the last data
 		row := o.sql.stmt["main"]["selectNodeLastIdByNodeId"].QueryRow(&node_id)
@@ -526,27 +595,32 @@ func (o *NKNOVH) saveANStatus() error {
 	average_uptime = int(float64(all_uptime)/float64(nodes_count))
 
 
-	//Get the latest height and timestamp
-	var last_height int
+	//Get the latest height
+	var last_height uint64
 	var last_timestamp uint64
 	var average_blockTime float64
 	var average_blocksPerDay float64
 	const FirstHeightTS uint64 = 1561814790
 
-	row := o.sql.stmt["main"]["selectLastHeightAN"].QueryRow();
-	err = row.Scan(&last_height, &last_timestamp)
+	row := o.sql.stmt["main"]["selectLastHeightAN"].QueryRow()
+	err = row.Scan(&last_height)
 	switch {
 	case err == sql.ErrNoRows:
-		o.log.Syslog("Cannot fetch info from db (last_height, last_timestamp), 0 row is found", "main")
+		o.log.Syslog("Cannot fetch info from db (last_height), 0 row is found", "main")
 	break
 	case err != nil:
 		o.log.Syslog("Can't execute row.Scan(): "+err.Error(), "sql")
 		return err
 	default:
+		o.NodeInfo.ANLastMux.Lock()
+		last_timestamp = uint64(time.Now().Unix())
+		o.NodeInfo.ANLast["Height"] = last_height
+		o.NodeInfo.ANLast["Timestamp"] = last_timestamp
 		if last_height > 0 && last_timestamp > 0 {
 			average_blockTime = float64(last_timestamp-FirstHeightTS)/float64(last_height)
 			average_blocksPerDay = 86400/average_blockTime
 		}
+		o.NodeInfo.ANLastMux.Unlock()
 	}
 
 	if _, err := o.sql.stmt["main"]["insertANStats"].Exec(&relays, &average_uptime, &average_relays, &relays_per_hour, &proposalSubmittedAll, &persist_nodes_count, &nodes_count, &last_height, &last_timestamp, &average_blockTime, &average_blocksPerDay); err != nil {
@@ -722,7 +796,7 @@ func (o *NKNOVH) dbIpsToArray() error {
 
 	for i := range o.NodeInfo.ips {
 		if _, err := o.searchIP(o.NodeInfo.ips[i]); err != nil {
-			o.log.Syslog("Get an error on searchIP func", "main")
+			o.log.Syslog("Get an error on searchIP func: " + err.Error(), "main")
 			continue
 		}
 	}
@@ -737,26 +811,32 @@ func (o *NKNOVH) dbIpsToArray() error {
 func (o *NKNOVH) updateAN() error {
 	var wg sync.WaitGroup
 	o.log.Syslog("[NeighborPoll] Starting get neighbors", "main")
-	//Append Nodes from DB firstly
-	o.dbIpsToArray()
+
 	//Init Mainnet
-	for _, val := range o.conf.SeedList {
-		o.NodeInfo.ips = append(o.NodeInfo.ips, val)
+	for i, _ := range o.conf.SeedList {
+		o.NodeInfo.ips = append(o.NodeInfo.ips, o.conf.SeedList[i])
 	}
 
-	for i := range o.NodeInfo.ips {
-		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
-		wg.Add(1)
-		o.threads.Neighbors <- struct{}{}
-		go o.getInfo(&wg, r, "AddNeighborAN", &o.threads.Neighbors)
+	for x := 0; x < 2; x++ {
+		for i := range o.NodeInfo.ips {
+			r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
+			wg.Add(1)
+			o.threads.Neighbors <- struct{}{}
+			go o.getInfo(&wg, r, "AddNeighborAN", &o.threads.Neighbors)
+		}
+		 wg.Wait()
+		 o.getANFromDB()
+		 o.dbIpsToArray()
 	}
-	wg.Wait()
 	o.log.Syslog("[NeighborPoll] All neighbors getted", "main")
+	/*
 	if err := o.getANFromDB(); err != nil {
 		o.log.Syslog("Get an error (getANFromDB): " + err.Error(), "main")
 		return err
 	}
-
+	*/
+	//after all 
+	
 	for i := range o.NodeInfo.ips {
 		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
 		wg.Add(1)
@@ -764,8 +844,11 @@ func (o *NKNOVH) updateAN() error {
 		go o.getInfo(&wg, r, "UpdateNodeAN", &o.threads.Neighbors)
 	}
 	wg.Wait()
+	
 	o.NodeInfo.ips = make([]string, 0)
+
 	o.log.Syslog("[NeighborPoll] Stats of all nodes saved", "main")
+	/*
 	if err := o.rmNodesByInterval(o.conf.NeighborPoll.RemoveInterval); err != nil {
 		o.log.Syslog("rmNodesByInterval has returned an error: " + "("+err.Error()+")", "main")
 		return err
@@ -774,6 +857,7 @@ func (o *NKNOVH) updateAN() error {
 		o.log.Syslog("rmNodesByInactive has returned an error: " + "("+err.Error()+")", "main")
 		return err
 	}
+	*/
 	return nil
 }
 

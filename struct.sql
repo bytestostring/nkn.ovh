@@ -13,6 +13,21 @@ CREATE TABLE `all_nodes` (
   `latest_update` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `all_nodes_last` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `ip` varchar(15) NOT NULL,
+  `addr` varchar(32) NOT NULL,
+  `node_id` varchar(65) DEFAULT NULL,
+  `syncState` varchar(32) NOT NULL,
+  `uptime` int(11) DEFAULT NULL,
+  `proposalSubmitted` int(11) DEFAULT NULL,
+  `relayMessageCount` int(11) DEFAULT NULL,
+  `height` int(11) NOT NULL,
+  `currtimestamp` bigint(20) UNSIGNED DEFAULT NULL,
+  `version` varchar(64) DEFAULT NULL,
+  `latest_update` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `all_nodes_stats` (
   `id` int(10) UNSIGNED NOT NULL,
   `relays` bigint(20) NOT NULL,
@@ -161,6 +176,15 @@ ALTER TABLE `watchers`
   ADD UNIQUE KEY `hash_id` (`hash_id`),
   ADD UNIQUE KEY `ro_hash` (`ro_hash`);
 
+ALTER TABLE `all_nodes_last`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `addr` (`addr`),
+  ADD KEY `syncState` (`syncState`),
+  ADD KEY `ip` (`ip`);
+
+
+ALTER TABLE `all_nodes_last`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `all_nodes`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;

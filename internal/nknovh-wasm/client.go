@@ -20,7 +20,7 @@ import (
 
 	//Some html templates
 	var wallabel string = `<div style="margin: 20px 0 0 0;"><p>%[1]s %[2]d:</p><input id="setwal-%[2]d" type="text" class="inputtext" value="%[4]s" placeholder="%[3]s"></div>`
-
+	var link_reference string = `<a href="javascript:void(0);" onclick="showModal('reference')">[?]</a>`
 	var wallet_div string = `<div class="wallet %[1]s" id="wallet-%[2]d">
 	<p style="font-weight: bold">%[3]v %[4]v</p>
 	<p><a href="https://explorer.nkn.org/detail/address/%[5]v" rel="noreferrer" target="_blank" title="Explorer">%[5]v</a></p>
@@ -886,12 +886,17 @@ func (c *CLIENT) SortAndParseNodes() {
 			node_class = "mining"
 			sumActiveNodes++
 		break
+		case "_OUT_":
+			status = "Out of NKN Network"
+			status = fmt.Sprintf("%s %s", status, link_reference)
+			node_class = "warning_out"
+			sumOffline++
 		default:
 			node_class = "warning"
 		}
 
 		switch x := r_err; x {
-		case 0:
+		case 0,3:
 			r_uptime = val["Uptime"].(float64)
 			r_relays = val["RelaysPerHour"].(float64)
 			r_relays10 = val["RelaysPerHour10"].(float64)
@@ -899,20 +904,28 @@ func (c *CLIENT) SortAndParseNodes() {
 			r_version = val["Version"].(string)
 			r_height = int(val["Height"].(float64))
 			r_proposal = int(val["ProposalSubmitted"].(float64))
-			status = r_syncstate
-			sumUptime += int(r_uptime)
-			sumRelaysPerHour += int(r_relays)
-			sumProposal += r_proposal
+
+			if x == 0 {
+				status = r_syncstate
+				sumUptime += int(r_uptime)
+				sumRelaysPerHour += int(r_relays)
+				sumProposal += r_proposal
+			}
+
 			RelaysViewK = fmt.Sprintf("%.2fk", r_relays/1000)
 			if r_relays10 > 0 {
 				RelaysViewK10 = fmt.Sprintf("%.2fk", r_relays10/1000)
-				sumRelaysPerHour10 += int(r_relays10)
+				if x == 0 {
+					sumRelaysPerHour10 += int(r_relays10)
+				}
 			} else {
 				RelaysViewK10 = "N/A"
 			}
 			if r_relays60 > 0 {
 				RelaysViewK60 = fmt.Sprintf("%.2fk", r_relays60/1000)
-				sumRelaysPerHour60 += int(r_relays60)
+				if x == 0 {
+					sumRelaysPerHour60 += int(r_relays60)
+				}
 			} else {
 				RelaysViewK60 = "N/A"
 			}
@@ -953,10 +966,10 @@ func (c *CLIENT) SortAndParseNodes() {
 
 			divs.Index(1).Set("textContent", r_name)
 			divs.Index(2).Set("textContent", r_ip)
-			divs.Index(3).Set("textContent", status)
+			divs.Index(3).Set("innerHTML", status)
 			divs.Index(11).Set("textContent", UpdateView)
 
-			if r_err == 0 {
+			if r_err == 0 || r_err == 3 {
 				divs.Index(4).Set("textContent", r_proposal)
 				divs.Index(5).Set("textContent", r_height)
 				divs.Index(6).Set("textContent", UptimeView)
@@ -985,7 +998,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			}
 			continue
 		}
-		if r_err == 0 {
+		if r_err == 0 || r_err == 3 {
 			div = fmt.Sprintf(node_template, r_nodeid, r_name, r_ip, status, r_proposal, r_height, UptimeView, RelaysViewK, RelaysViewK10, RelaysViewK60, VersionView, UpdateView)
 		} else {
 			div = fmt.Sprintf(node_template, r_nodeid, r_name, r_ip, status, "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", UpdateView)
@@ -1526,6 +1539,7 @@ func (c *CLIENT) Run() {
 		}
 	} else {
 		c.Hash = hash
+		c.W.LocalStorage("set", "hash", hash)
 	}
 	if err, _ = c.W.LocalStorage("get", "hide_attention"); err == nil {
 		c.Hide_attention = true

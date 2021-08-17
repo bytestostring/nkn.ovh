@@ -7,6 +7,7 @@ import (
 		"github.com/gobwas/ws/wsutil"
 		"github.com/julienschmidt/httprouter"
 		"fmt"
+		"log"
 		"encoding/json"
 		"strconv"
 		)
@@ -304,5 +305,5 @@ func (o *NKNOVH) Listen() {
 	router.POST("/api", o.apiPOST)
 
 	router.NotFound = http.FileServer(http.Dir("./web/"))
-	http.ListenAndServe(":" + strconv.Itoa(o.conf.HttpServer.Port), router)
+	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(o.conf.HttpServer.Port), router))
 }

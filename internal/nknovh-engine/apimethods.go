@@ -660,6 +660,9 @@ func (o *NKNOVH) apiMyNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 			nodes[n]["ProposalSubmitted"] = -1
 			nodes[n]["SyncState"] = "_OFFLINE_"
 			no_history_nodes[n] = true
+		} else if nli.SyncState == "OUT" {
+			nodes[n]["SyncState"] = "_OUT_"
+			nodes[n]["Err"] = 3
 		} else if nli.SyncState == "PRUNING DB" || nli.SyncState == "GENERATING ID" {
 			no_history_nodes[n] = true
 		}
