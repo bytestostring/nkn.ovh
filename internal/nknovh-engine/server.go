@@ -140,8 +140,11 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 		for {
 			msg, op, err := wsutil.ReadClientData(conn)
 			if err != nil {
+				o.log.Syslog(err.Error(), "wshttp")
 				return
 			}
+			o.log.Syslog("WS Request from " + c.Ip + "; Message: " + string(msg), "wshttp")
+
 			q := new(WSQuery)
 			if err := json.Unmarshal(msg, q); err != nil {
 				o.log.Syslog("Cannot unmarshal json to WSQuery: " + err.Error(), "errors")
@@ -246,7 +249,7 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 			return
 		}
 	}
-
+	o.log.Syslog("POST Request from " + c.Ip, "http")
 	//Auth
 	if i := FindStringInSlice(o.Web.MethodsReqAuth, data.Method); i != len(o.Web.MethodsReqAuth) {
 
