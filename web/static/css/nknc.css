@@ -657,13 +657,17 @@ input.t-enter {
 }
 
 .switch {
-	color: #151515;
+	color: #808080;
 	cursor: pointer;
+	text-decoration: underline;
 }
 
 .switch.active {
-	color: green;
-	text-decoration: underline;
+	color: white;
+	border-radius: 6px;
+	padding: 6px;
+	background: rgba(130,110,210,1);
+	text-decoration: none;
 }
 
 .nodes_summary_table .tr {
