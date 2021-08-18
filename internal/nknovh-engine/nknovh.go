@@ -49,7 +49,7 @@ type NodeInfo struct {
 	CounterFinish int
 	muxCounter sync.Mutex
 	mux sync.RWMutex
-	ANLast map[string]uint64
+	ANLast map[string]float64
 	ANLastMux sync.RWMutex
 	ANArray map[int]map[int][]int
 	ANArrayMux []sync.RWMutex
@@ -120,7 +120,7 @@ func (o *NKNOVH) Build() error {
 							ips: make([]string, 0),
 							m_nodes: map[string][]uint64{},
 							d_nodes: map[string][]uint64{},
-							ANLast: map[string]uint64{},
+							ANLast: map[string]float64{},
 						}
 	o.NodeInfo.ANArray = map[int]map[int][]int{}
 	o.NodeInfo.ANArrayMux = make([]sync.RWMutex, 0)
@@ -375,21 +375,42 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
 	var id uint64
 	var timestamp uint64
-	var last_timestamp uint64
+	var last_timestamp float64
+	var last_height float64
+	var average_blockTime float64
 	var ok bool
-	var correction uint64 = 600
+	var correction uint64 = 120
+	var diff_timestamp uint64
+	var min_block_difference float64 = 7
+
 	timestamp = uint64(time.Now().Unix())
-	diff := timestamp - uint64(node.Result.Uptime) + correction 
+	diff := timestamp - uint64(node.Result.Uptime) + correction
+	
 	o.NodeInfo.ANLastMux.RLock()
 	defer o.NodeInfo.ANLastMux.RUnlock()
+	if last_height, ok = o.NodeInfo.ANLast["Height"]; !ok {
+		return nil, false
+	}
+	if last_timestamp, ok = o.NodeInfo.ANLast["Timestamp"]; !ok {
+		return nil, false
+	}
+	if average_blockTime, ok = o.NodeInfo.ANLast["averageBlockTime"]; !ok {
+		return nil, false
+	}
 	row := o.sql.stmt["main"]["selectIdByIpANLast"].QueryRow(dbnode.Ip)
 	err := row.Scan(&id)
 	switch {
 		case err == sql.ErrNoRows:
-			if last_timestamp, ok = o.NodeInfo.ANLast["Timestamp"]; !ok {
-				return nil, false
+			var diff_height uint64
+			var node_height uint64 = uint64(node.Result.Height)
+			if node_height > uint64(last_height) {
+				diff_height = node_height - uint64(last_height)
+			} else {
+				diff_height = uint64(last_height) - node_height
 			}
-			if diff < last_timestamp {
+			diff_timestamp = timestamp - uint64(last_timestamp)
+			block_difference := float64(diff_height)  - float64(diff_timestamp) / average_blockTime 
+			if diff < uint64(last_timestamp) && (block_difference > min_block_difference || block_difference < min_block_difference - min_block_difference * 2) {
 				return nil, true
 			}
 		case err != nil:
@@ -614,11 +635,12 @@ func (o *NKNOVH) saveANStatus() error {
 	default:
 		o.NodeInfo.ANLastMux.Lock()
 		last_timestamp = uint64(time.Now().Unix())
-		o.NodeInfo.ANLast["Height"] = last_height
-		o.NodeInfo.ANLast["Timestamp"] = last_timestamp
-		if last_height > 0 && last_timestamp > 0 {
+		if last_height > 0 {
 			average_blockTime = float64(last_timestamp-FirstHeightTS)/float64(last_height)
 			average_blocksPerDay = 86400/average_blockTime
+			o.NodeInfo.ANLast["Timestamp"] = float64(last_timestamp)
+			o.NodeInfo.ANLast["Height"] = float64(last_height)
+			o.NodeInfo.ANLast["averageBlockTime"] = average_blockTime
 		}
 		o.NodeInfo.ANLastMux.Unlock()
 	}
