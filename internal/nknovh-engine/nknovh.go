@@ -383,6 +383,10 @@ func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
 	var diff_timestamp uint64
 	var min_block_difference float64 = 7
 
+	if node.Result.Uptime < 300 {
+		return nil, false
+	}
+	
 	timestamp = uint64(time.Now().Unix())
 	diff := timestamp - uint64(node.Result.Uptime) + correction
 	
