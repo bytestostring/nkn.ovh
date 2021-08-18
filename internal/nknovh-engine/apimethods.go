@@ -513,30 +513,22 @@ func (o *NKNOVH) apiLanguage(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	var ok bool
 
 	if view, ok = q.Value["View"].(string); !ok {
-		err = errors.New("1")
-		fmt.Println(1)
-		return
+		return o.WsError(q, 230)
 	}
 	if locale, ok = q.Value["Locale"].(string); !ok {
-		err = errors.New("2")
-		fmt.Println(2)
-		return
+		return o.WsError(q, 231)
 	}
 	if len(locale) > 10 || len(view) > 32 {
-		fmt.Println(3)
-		err = errors.New("3")
-		return
+		return o.WsError(q, 232)
 	}
 	
 	if i := FindStringInSlice(lang_packages, locale); i == len(lang_packages) {
-		fmt.Println(4)
-		err = errors.New("4")
-		return
+		return o.WsError(q, 233)
 	}
 	read, err := ioutil.ReadFile("templates/languages/" + locale + ".json")
 	if err != nil {
-		fmt.Println("no file")
-		return
+		o.log.Syslog("Cannot read a file: " + err.Error(), "main")
+		return o.WsError(q, 234)
 	}
 
 	data := string(read)

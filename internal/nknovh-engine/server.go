@@ -95,6 +95,13 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[16] = WSReply{Code: 16, Error: true, ErrMessage: "Wallets overflow"}
 	o.Web.Response[17] = WSReply{Code: 17, Error: true, ErrMessage: "One or more of the passed wallets are not in the correct format"}
 	o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of passed nodes are not found. No changes."}
+	
+	o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
+	o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
+	o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables are overflow"}
+	o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Passed lang package is not found in package slice"}
+	o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack is not found as JSON file"}
+
 	o.Web.Response[240] = WSReply{Code: 240, Error: true, ErrMessage: "GenRandomSHA256 returned error"}
 	o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have created at least 3 ID for the latest 30 minutes"}
 	o.Web.Response[253] = WSReply{Code: 253, Error: true, ErrMessage: "You have no authorization"}
