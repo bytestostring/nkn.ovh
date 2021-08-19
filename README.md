@@ -6,10 +6,10 @@ ________
 ## System requirements.
 
 - Starting at version 1.1 the programm can working in standalone mode (without frontend proxy), but only for HTTP protocol.
-- High network bandwidth 100 mbps+. We are strongly recommend to use a server with 250+ mbps bandwidth for the default options.
+- Network bandwidth 30 mbps+.
 - MySQL 5.6+ / MariaDB 10+ with a InnoDB support.
 - As least 512MB RAM
-- (Optional) Any frontend server with WebSocket proxy support for support HTTPS protocol.
+- (Optional) Any frontend server with WebSocket proxy support for HTTPS protocol access.
 - For build the nknovh daemon you need Golang 1.15 or higher
 
 
