@@ -893,6 +893,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			sumOffline++
 		default:
 			node_class = "warning"
+			sumOffline++
 		}
 
 		switch x := r_err; x {
