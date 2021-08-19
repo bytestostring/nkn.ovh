@@ -24,7 +24,7 @@
 
 	var view_logo = `<div class="logo"><div><img src="/static/images/nkn-logo.png" alt=""></div><div>. OVH</div></div><div style="clear: both;"></div>`
 
-var version_src = `<div id="update_needed">
+	var version_src = `<div id="update_needed">
 <h1>{{ .LANG.Outdated.title }}</h1>
 <span>{{ .LANG.Outdated.text_refresh }}</span>
 <br>
@@ -35,9 +35,9 @@ var version_src = `<div id="update_needed">
 </span>
 </div>`
 
-var baseloading = `<div id="baseloading"></div>`
+	var baseloading = `<div id="baseloading"></div>`
 
-var view_src = `
+	var view_src = `
 {{{include "pages/nav.tpl"}}}|m
 <div style="clear: both;"></div>
 <div id="completedQuery" style="display: none">Query completed</div>
@@ -167,7 +167,6 @@ var view_src = `
 </div>
 <div class="clear: both"></div>
 
-
 {{{include "pages/modal/addnodes.tpl"}}}|m
 {{{include "pages/modal/reference.tpl"}}}|m
 {{{include "pages/modal/changelog.tpl"}}}|m
@@ -175,19 +174,4 @@ var view_src = `
 {{{include "pages/modal/donate.tpl"}}}|m
 {{{include "pages/modal/disconnect.tpl"}}}|m
 `
-/*
-
-	$('#check').on('click', function(e) {
-		if (e.target !== this) {
-			return
-		}
-		reversetogglechkbox()
-	});
-	} else {
-		$('.wrapper').prepend('<div class="content index" id="content"></div>')
-		setLanguage(index_src, "", function(lang) {$('#opt_lang_' + lang).prop('selected', 'selected');	$('#donatelink').text(LANG.donate.title)})
-	}
-
-})
-*/
 </script>
