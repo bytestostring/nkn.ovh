@@ -5,7 +5,7 @@
 	<link href="/static/css/nknc.css?up={{style_etag}}|m" rel="stylesheet" property="stylesheet" title="" />
 	<link rel="icon" href="/static/favs/favicon.ico" type="image/x-icon" />
 	<link rel="shortcut icon" href="/static/favs/favicon.ico" type="image/x-icon">
-	<script src="/static/js/wasm_exec.js"></script>
+	<script src="/static/js/wasm_exec.js?{{wexec_etag}}|m"></script>
 	<script>
 	if (typeof WebAssembly === "object") {
 		const go = new Go();

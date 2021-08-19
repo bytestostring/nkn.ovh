@@ -198,6 +198,9 @@ func (o *NKNOVH) CreateIndex(w http.ResponseWriter, r *http.Request, _ httproute
 	if err, x := getEtag("web/static/css/nknc.css"); err == nil {
 		t.Set("style_etag", strconv.FormatInt(x, 10))
 	}
+	if err, x := getEtag("web/static/js/wasm_exec.js"); err == nil {
+		t.Set("wexec_etag", strconv.FormatInt(x, 10))
+	}
 	if err, x := getEtag("web/static/lib.wasm"); err == nil {
 		t.Set("wasm_etag", strconv.FormatInt(x, 10))
 	}
