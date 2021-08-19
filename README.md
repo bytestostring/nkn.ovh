@@ -25,6 +25,11 @@ go build cmd/nknovh/nknovh.go
 # Compile WebAssembly (optionally)
 GOOS=js GOARCH=wasm go build -ldflags=-s -o web/static/lib.wasm cmd/wasm/wasm.go
 ```
+
+Note. If you have compiled WebAssembly (wasm.go), then you mustw copy **wasm_exec.js** from your golang distribution to **web/static/js/** directory.
+As example, for Go version 1.15 that file can be found here:
+https://github.com/golang/go/blob/dev.boringcrypto.go1.15/misc/wasm/wasm_exec.js
+
 2. Create a database and import the sql file like this:
 
 ```
