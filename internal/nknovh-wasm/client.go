@@ -892,6 +892,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			node_class = "warning_out"
 			sumOffline++
 		case "PRUNING DB", "GENERATION ID", "WAIT_FOR_SYNCING", "SYNC_STARTED", "SYNC_FINISHED":
+			node_class = "warning"
 			sumOffline++
 		default:
 			node_class = "warning"
