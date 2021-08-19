@@ -43,10 +43,10 @@
 	<h4>16 August 2021 (Version 1.1.0)</h4>
 	<p>- Added countdown to next API request.</p>
 	<p>- Added pagination of the node table.</p>
-	<p>- Many changes the internal logic of the site.</p>
+	<p>- Many changes in the internal logic of the site.</p>
 	<p>- Telegram notification support will be added in the next release v1.1.1</p>
 	<h4>21 May - 24 June 2021 (Version 1.0.10)</h4>
-	<p>- Many important changes the internal logic of the site.</p>
+	<p>- Many important changes in the internal logic of the site.</p>
 	<p>- The project is open source: <a href="https://github.com/bytestostring/nkn.ovh" target="_blank">github.com/bytestostring/nkn.ovh</a></p>
 	<h4>20 May 2021</h4>
 	<p>- Added automatic removal of inactive nodes. If a node has been Offline for more than seven days, it will be removed. If a node hasn't responded correctly to the server within 6 hours since the node was added, it will also be removed.</p>
