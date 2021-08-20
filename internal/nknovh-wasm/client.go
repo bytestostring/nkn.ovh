@@ -393,6 +393,9 @@ func (c *CLIENT) parseNetstatus() {
 	if n := x; n <= 3600 {
 		au = x
 		au_sense = c.LANG.SenseSeconds
+	} else if n := x/60; n <= 59 {
+		au = n
+		au_sense = c.LANG.SenseMinutes
 	} else if n := x/3600; n <= 24 {
 		au = n
 		au_sense = c.LANG.SenseHours
@@ -556,9 +559,12 @@ func (c *CLIENT) calcNodesSummary() {
 
 	//Parse average uptime for client nodes
 	x := c.NodesSummary["client"]["AverageUptime"]
-	if n := x; n <= 3600 {
+	if n := x; n <= 3600/60 {
 		au = x
 		au_sense = c.LANG.SenseSeconds
+	} else if n := x/60; n <= 59 {
+		au = n
+		au_sense = c.LANG.SenseMinutes
 	} else if n := x/3600; n <= 24 {
 		au = n
 		au_sense = c.LANG.SenseHours
