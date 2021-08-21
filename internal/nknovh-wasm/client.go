@@ -390,7 +390,7 @@ func (c *CLIENT) parseNetstatus() {
 	var au_sense string
 	var au float64
 	x := float64(netstatus.Value.AverageUptime)
-	if n := x; n <= 3600 {
+	if n := x; n <= 3600/60 {
 		au = x
 		au_sense = c.LANG.SenseSeconds
 	} else if n := x/60; n <= 59 {
@@ -603,13 +603,26 @@ func (c *CLIENT) calcNodesSummary() {
 		mining_sense = c.LANG.NodesTables["Other"]["ismining_label"]
 	}
 
+	doc := js.Global().Get("document")
 	wait_per_month = waitRewardMonth*11.09
 	if c.Prices != nil {
 		wait_per_month_usd = wait_per_month * c.Prices.Value.Usd
+
+		//Add prices to title
+		title := doc.Get("title")
+		title_slice := strings.Split(title.String(), "|")
+		var title_end string
+		if len(title_slice) >= 2 {
+			title_end = strings.TrimSpace(title_slice[1])
+		} else {
+			title_end = title.String()
+		}
+		doc.Set("title", fmt.Sprintf("%.5f $ | %s ", c.Prices.Value.Usd, title_end))
+
 	}
 
 	//Final, printing result
-	doc := js.Global().Get("document")
+
 	elSumstat := doc.Call("getElementById", "sum_tr")
 	elNodesCount := doc.Call("getElementById", "sum-NodesCount")
 	elNetworkControl := doc.Call("getElementById", "sum-NetworkControl")
