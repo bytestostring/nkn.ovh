@@ -855,13 +855,6 @@ func (o *NKNOVH) updateAN() error {
 		 o.dbIpsToArray()
 	}
 	o.log.Syslog("[NeighborPoll] All neighbors getted", "main")
-	/*
-	if err := o.getANFromDB(); err != nil {
-		o.log.Syslog("Get an error (getANFromDB): " + err.Error(), "main")
-		return err
-	}
-	*/
-	//after all 
 	
 	for i := range o.NodeInfo.ips {
 		r := &JsonRPCConf{Ip:o.NodeInfo.ips[i], Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.NeighborClient}
@@ -874,33 +867,9 @@ func (o *NKNOVH) updateAN() error {
 	o.NodeInfo.ips = make([]string, 0)
 
 	o.log.Syslog("[NeighborPoll] Stats of all nodes saved", "main")
-	/*
-	if err := o.rmNodesByInterval(o.conf.NeighborPoll.RemoveInterval); err != nil {
-		o.log.Syslog("rmNodesByInterval has returned an error: " + "("+err.Error()+")", "main")
-		return err
-	}
-	if err := o.rmNodesByInactive(); err != nil {
-		o.log.Syslog("rmNodesByInactive has returned an error: " + "("+err.Error()+")", "main")
-		return err
-	}
-	*/
 	return nil
 }
 
-func (o *NKNOVH) rmNodesByInterval(min int) error {
-	if _, err := o.sql.stmt["main"]["rmNodesByInterval"].Exec(min); err != nil {
-		o.log.Syslog("Stmt mNodesByInterval has returned an error: ("+err.Error()+")", "sql")
-		return err
-	}
-	return nil
-}
-func (o *NKNOVH) rmNodesByInactive() error {
-	if _, err := o.sql.stmt["main"]["rmNodesByInactive"].Exec(); err != nil {
-		o.log.Syslog("Stmt mNodesByInactive has returned an error: ("+err.Error()+")", "sql")
-		return err
-	}
-	return nil
-}
 func (o *NKNOVH) rmOldHistory(node_id uint64) error {
 	var count_entries int
 	row := o.sql.stmt["main"]["countNodeHistory"].QueryRow(&node_id);

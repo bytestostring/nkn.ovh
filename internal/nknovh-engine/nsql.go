@@ -28,8 +28,6 @@ func (o *Mysql) prepare() error {
 			"selectIdByAddrAN": "SELECT id FROM all_nodes WHERE addr = ?",
 			"selectIdByIpANLast": "SELECT id FROM all_nodes_last WHERE ip = ?",
 			"selectAllIpsAN": "SELECT ip FROM all_nodes",
-			"rmNodesByInterval": "DELETE FROM all_nodes WHERE latest_update < NOW() - INTERVAL ? MINUTE",
-			"rmNodesByInactive": "DELETE FROM all_nodes WHERE uptime IS NULL",
 			"clearANStats": "DELETE FROM all_nodes_last",
 			"clearAN": "DELETE FROM all_nodes",
 			"copyANtoStats": "INSERT INTO all_nodes_last SELECT * FROM all_nodes",
