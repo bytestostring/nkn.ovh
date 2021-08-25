@@ -234,7 +234,7 @@ func (c *CLIENT) walletsInfoUpdate() {
 			} else {
 				usd_val = 0
 			}
-			s := fmt.Sprintf("<p>%[1]s: %2.5f NKN [ %3.2f$ ]</p></div>", c.LANG.WalletTracker["balance_label"], c.Wallets.Value.Wallets[i].Balance, usd_val)
+			s := fmt.Sprintf("%[1]s: %2.5f NKN [ %3.2f$ ]", c.LANG.WalletTracker["balance_label"], c.Wallets.Value.Wallets[i].Balance, usd_val)
 			wallets += fmt.Sprintf(wallet_div, wclass, c.Wallets.Value.Wallets[i].Id, c.LANG.WalletTracker["walletname_label"], i+1, c.Wallets.Value.Wallets[i].NknWallet, s)
 		}
 	}
