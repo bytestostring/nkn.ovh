@@ -523,7 +523,7 @@ func (c *CLIENT) calcNodesSummary() {
 		r60 string
 		au float64
 		au_sense string
-		wop_sense string
+		wop_sense string = c.LANG.SenseSeconds
 		mining_sense string
 		averageBlocksPerDay float64
 		controlPercentage float64
