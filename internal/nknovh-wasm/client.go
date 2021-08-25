@@ -937,7 +937,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			}
 
 			RelaysViewK = fmt.Sprintf("%.2fk", r_relays/1000)
-			if r_relays10 > 0 {
+			if r_relays10 > 0 && status == "PERSIST_FINISHED" {
 				RelaysViewK10 = fmt.Sprintf("%.2fk", r_relays10/1000)
 				if x == 0 {
 					sumRelaysPerHour10 += int(r_relays10)
@@ -945,7 +945,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			} else {
 				RelaysViewK10 = "N/A"
 			}
-			if r_relays60 > 0 {
+			if r_relays60 > 0 && status == "PERSIST_FINISHED" {
 				RelaysViewK60 = fmt.Sprintf("%.2fk", r_relays60/1000)
 				if x == 0 {
 					sumRelaysPerHour60 += int(r_relays60)
