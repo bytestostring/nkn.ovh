@@ -930,7 +930,9 @@ func (c *CLIENT) SortAndParseNodes() {
 			if x == 0 {
 				status = r_syncstate
 				sumUptime += int(r_uptime)
-				sumRelaysPerHour += int(r_relays)
+				if status == "PERSIST_FINISHED" {
+					sumRelaysPerHour += int(r_relays)
+				}
 				sumProposal += r_proposal
 			}
 
