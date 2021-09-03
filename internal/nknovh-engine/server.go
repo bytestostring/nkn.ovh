@@ -40,13 +40,13 @@ type WSReply struct {
 type Netstatus struct {
 	Relays              int64   `json:"relays"`
 	AverageUptime       int     `json:"average_uptime"`
-	AverageRelays       int     `json:"average_relays"`
-	RelaysPerHour       int     `json:"relays_per_hour"`
+	AverageRelays       uint64  `json:"average_relays"`
+	RelaysPerHour       uint64  `json:"relays_per_hour"`
 	ProposalSubmitted   int     `json:"proposalSubmitted"`
 	PersistNodesCount   int     `json:"persist_nodes_count"`
 	NodesCount          int     `json:"nodes_count"`
 	LastHeight          int     `json:"last_height"`
-	LastTimestamp       int     `json:"last_timestamp"`
+	LastTimestamp       uint64  `json:"last_timestamp"`
 	AverageBlockTime    float64 `json:"average_blockTime"`
 	AverageBlocksPerDay float64 `json:"average_blocksPerDay"`
 	LatestUpdate        string  `json:"latest_update"`
