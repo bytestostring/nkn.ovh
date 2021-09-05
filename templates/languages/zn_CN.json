@@ -1,0 +1,178 @@
+{
+	"lang_values": {
+		"en_US": "英文",
+		"ru_RU": "俄语",
+		"zn_CN": "简体中文"
+	},
+  "current_lang": "zn_CN",
+  "sense_timezone": "(本地时间)",
+  "sense_of": "of",
+  "sense_days": "天",
+  "sense_hours": "小时",
+  "sense_seconds": "秒",
+  "sense_minutes": "分钟",
+  "sense_month": "月",
+  "sense_years": "年",
+  "sense_every": "每",
+  "sense_relayh": "转发 / 小时",
+  "warn_not_mining": "节点没有在工作",
+  "warn_not_mining_multiple": "节点没有在工作",
+  "refresher": {
+  	"ok": "自动刷新",
+  	"stop": "停止刷新"
+  },
+  "nav": {
+	"addnodes": "添加节点",
+	"reference": "说明",
+	"road": "线路图",
+	"changelog": "更新日志",
+	"settings": "设置",
+	"logout": "注销"
+  },
+  "donate": {
+	"title": "捐赠"
+  },
+  "attention": {
+	"text": "嗨！你可以保存此地址到你的收藏夹中，方便下次浏览",
+	"btn_text": "不在提醒！"
+  },
+	"index": {
+		"gen_btn_val": "生成新ID",
+		"gen_btn_change": "请稍后",
+		"enter_btn_val": "用ID登录",
+		"enter_btn_change": "登录",
+		"enter_input_id": "粘贴你的ID",
+		"label_select_lang": "语言"
+	},
+	"wallet_tracker": {
+		"title": "钱包监控",
+		"balance_label": "余额",
+		"walletname_label": "钱包",
+		"wait_for_update": "正在更新",
+		"wallets_nf": "没有添加钱包"
+  },
+	"nodes_tables": {
+		"NST": {
+		  "title": "NKN 网络",
+		  "sum_relays": "总体表现",
+		  "sum_nodes": "总节点数",
+		  "sum_persist": "PERSIST_FINISHED 节点",
+		  "sum_average_relays": "节点平均性能",
+		  "sum_average_uptime": "节点平均运行时间",
+		  "last_update": "最后更新时间"
+		},
+		"NST_client": {
+		  "title": "你的节点",
+		  "sum_nodes": "节点",
+		  "network_control": "你的节点占比",
+		  "sum_relays": "总体表现",
+		  "sum_average_relays": "平均新能",
+		  "waitproposal": "平均奖励区块间隔",
+		  "waitproposal_nkn": "预计报酬",
+		  "average_rewards_interval": "平均奖励间隔"
+		},
+		"Other": {
+		  "title": "你的节点信息",
+		  "no_nodes_label": "你没有任何节点",
+		  "col_name": "备注",
+		  "col_ip": "IP 地址",
+		  "col_status": "状态",
+		  "col_proposal": "建议",
+		  "col_height": "块高度",
+		  "col_uptime": "运行时间",
+		  "col_version": "版本",
+		  "col_update": "最后更新时间",
+		  "b_sum_label": "总计",
+		  "b_node_waiting": "正在更新",
+		  "relayh_label": "转发 / 小时",
+		  "ismining_label": "在工作",
+		  "aremining_label": "在工作",
+		  "remove_btn_label": "删除选中"
+		}
+	},
+	"modal": {
+		"control": {
+		  "close": "关闭"
+		},
+		"addNodes": {
+		  "title": "添加节点",
+		  "label_single": "单个",
+		  "label_multiple": "批量",
+		  "label_nodeIP": "IP 地址",
+		  "label_nodeIP_placeholder": "只支持 IPv4 地址",
+		  "label_nodeName": "节点名称",
+		  "label_nodeName_placeholder": "可选, 最大32个字节",
+		  "label_recommend": "我们建议你使用短名称(少于10个字符)",
+		  "label_multi_nodeIP": "IP 列表",
+		  "label_multi_prompt": "IP 地址必须用逗号、空格或换行符分隔。只能同时使用其中一种方式。",
+		  "label_multi_nodeName": "节点名称",
+		  "add_btn": "添加节点"
+		},
+		"reference": {
+		  "title": "说明"
+		},
+		"roadmap": {
+		  "title": "线路图"
+		},
+		"donate": {
+		  "title": "捐赠"
+		},
+		"changelog": {
+		  "title": "更新日志"
+		},
+		"settings": {
+		  "title": "设置",
+		  "label_wallets": "钱包",
+		  "label_notifications": "通知",
+		  "label_wal_placeholder": "NKN 地址",
+		  "label_wal": "钱包",
+		  "wallets_info": "你最多可以添加3个钱包",
+		  "wallets_loading": "正在加载你的钱包，请稍后！",
+		  "tmp_devel": "正在开发！敬请期待",
+		  "addmore_btn": "添加更多",
+		  "save_btn": "保存"
+		},
+		"wsdisconnect":{
+			"connected": "已连接",
+			"failed": "失败",
+			"connecting": "连接中",
+			"title": "Oh no...",
+			"info": "连接丢失",
+			"trying": "正在尝试重新连接"
+		}
+	},
+	"outdated": {
+		"title": "页面已超时",
+		"text_refresh": "请按 F5 或者 CTRL+F5 刷新页面",
+		"text_curver": "显示版本",
+		"text_lastver": "最新版本"
+	},
+	"answers": {
+		"default": {
+			"1": "无法执行 SQL 查询",
+			"2": "部分添加的节点",
+			"3": "数据库中没有相关信息",
+			"4": "发生错误",
+			"5": "不正确查询",
+			"6": "节点名称太长或格式不正确",
+			"7": "多个变量必须是布尔值",
+			"8": "IP 变量必须是有效的字符串",
+			"9": "IP 地址不正确",
+			"10": "传递的 IP 地址不是 IPv4",
+			"11": "传递的 IP 地址不在公共网络中",
+			"12": "超出节点限制",
+			"13": "错误的分隔符",
+			"14": "由于节点已经存在，所以没有添加它们",
+			"15": "错误的 NodesId",
+			"16": "钱包溢出",
+			"17": "个或多个钱包格式不正确",
+			"18": "一个或多个节点长时间没有变化",
+			"240": "GenRandomSHA256 返回错误",
+			"252": "你最多在30分钟内创建3个ID",
+			"253": "你没有授权",
+			"254": "ID 长度不正确",
+			"255": "未找到正确的ID",
+			"500": "内部服务器错误"
+		}
+	}
+}
