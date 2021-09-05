@@ -614,7 +614,7 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 		time.Sleep(repeatInterval * time.Second)
 		wg.Add(1)
 		if err := o.getInfo(&wg, r, "UpdateNode", threads, params, true); err != nil {
-			o.log.Syslog("[Retry " + strconv.Itoa(i) + "] No answer from node \"" + node_ip + "\"", "nodes")
+			o.log.Syslog("[Retry " + strconv.Itoa(i) + "] The node \"" + node_ip + "\" has no responded", "nodes")
 			continue
 		}
 		o.log.Syslog("Node \"" + node_ip + "\" is working up now!", "main")
