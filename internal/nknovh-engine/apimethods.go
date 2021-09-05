@@ -78,7 +78,9 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	if err != nil && len(res) > 0 {
 		return o.WsError(q, 21)
 	}
-
+	if b := o.isNodeStateValid(&data.State); !b {
+		return o.WsError(q, 555)
+	}
 	m := map[string]interface{}{}
 
 	if data.State.Error != nil {
@@ -121,7 +123,7 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 		ns.RelaysPerHour = 0
 	}
 	ns.NodeState = &data.State
-	
+
 	//Get the neighbors info
 	ncount := len(data.Neighbor.Result)
 	if ncount != 0 {

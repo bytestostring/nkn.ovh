@@ -515,6 +515,12 @@ func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
 
 
 func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
+
+	if b := o.isNodeStateValid(node); !b {
+		o.log.Syslog("isNodeStateValid has returned false", "nodes")
+		return
+	}
+
 	dbnode := params.(*DBNode)
 	minute := time.Now().Minute()
 	var id uint64
@@ -940,12 +946,18 @@ func (o *NKNOVH) UpdateNodeErr(resp *NodeState, params interface{}) {
 
 func (o *NKNOVH) UpdateNodeAN(node *NodeState) error {
 	var ip string
+
+	if b := o.isNodeStateValid(node); !b {
+		return errors.New("Invalid NodeState")
+	}
+
 	re_ip := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
 	if tmp := re_ip.FindString(node.Result.Addr); tmp != "" {
 		ip = tmp
 	} else {
 		return nil
 	}
+
 	if _, err := o.sql.stmt["main"]["updateNodeByIpAN"].Exec(node.Result.ID, node.Result.SyncState, node.Result.Uptime, node.Result.ProposalSubmitted, node.Result.RelayMessageCount, node.Result.Height, node.Result.Version, node.Result.Currtimestamp, ip); err != nil {
 		o.log.Syslog("Can't execute updateNodeByIp: "+err.Error(), "sql")
 		return err
