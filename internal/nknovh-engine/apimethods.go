@@ -12,6 +12,7 @@ import (
 		"io/ioutil"
 		"fmt"
 		"time"
+		"encoding/json"
 )
 
 func (o *NKNOVH) updateUniqWatch(c *CLIENT) error {
@@ -35,6 +36,132 @@ func (o *NKNOVH) WsError(q *WSQuery, code int) (err error, r WSReply) {
 	}
 	err = errors.New("Response key is not found")
 	return nil, WSReply{Method: q.Method, Code: -1, Error: true, ErrMessage: "Response key is not found"}
+}
+
+func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply) {
+
+	t0 := time.Now()
+	var node_id int
+	if raw_node_id, ok := q.Value["NodeId"].(float64); !ok {
+		if raw_node_id_s, ok := q.Value["NodeId"].(string); !ok {
+			return o.WsError(q, 19)
+		} else {
+			x, err := strconv.Atoi(raw_node_id_s)
+			if err != nil {
+				return o.WsError(q, 19)
+			}
+			node_id = x
+		}
+	} else {
+		node_id = int(raw_node_id)
+	}
+
+	var node_ip string
+	var node_name string
+	row := o.sql.stmt["main"]["WebSelectNodeInfoById+HashId"].QueryRow(node_id, c.HashId)
+	err = row.Scan(&node_name, &node_ip)
+	switch {
+		case err == sql.ErrNoRows:
+			return o.WsError(q, 18)
+		case err != nil:
+			return o.WsError(q, 1)
+	}
+	var data NodeSt
+	state := &JsonRPCConf{Ip:node_ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient, UnmarshalData: &data.State}
+
+	t1 := time.Now()
+	res, err := o.jrpc_get(state)
+	t1_time := time.Now().Sub(t1)
+	if err != nil && len(res) == 0 {
+		return o.WsError(q, 20)
+	}
+	if err != nil && len(res) > 0 {
+		return o.WsError(q, 21)
+	}
+
+	m := map[string]interface{}{}
+
+	if data.State.Error != nil {
+		r := o.respErrorHandling(data.State.Error)
+		m["Data"] = r
+		return nil, WSReply{Method: q.Method, Code: 3, Value: m,}
+	}
+
+	neighbor := &JsonRPCConf{Ip:node_ip, Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient, UnmarshalData: &data.Neighbor}
+
+	t2 := time.Now()
+	res, err = o.jrpc_get(neighbor)
+	t2_time := time.Now().Sub(t2)
+
+	if err != nil && len(res) == 0 {
+		return o.WsError(q, 22)
+	}
+	if err != nil && len(res) > 0 {
+		return o.WsError(q, 23)
+	}
+
+	if data.Neighbor.Error != nil {
+		return o.WsError(q, 24)
+	}
+
+	type NodeStats struct {
+		MinPing int
+		AvgPing int
+		MaxPing int
+		NeighborCount int
+		NeighborPersist int
+		RelaysPerHour uint64
+		NodeState *NodeState
+	}
+
+	ns := new(NodeStats)
+	if data.State.Result.Uptime > 0 {
+		ns.RelaysPerHour = uint64(math.Floor(float64(data.State.Result.RelayMessageCount)/float64(data.State.Result.Uptime)*3600))
+	} else {
+		ns.RelaysPerHour = 0
+	}
+	ns.NodeState = &data.State
+	
+	//Get the neighbors info
+	ncount := len(data.Neighbor.Result)
+	if ncount != 0 {
+		var min int = -1
+		var max int = -1
+		var sumping int
+		var sumpersist int
+		for i := 0; i < ncount; i++ {
+			if min == -1 || max == -1 {
+				min = data.Neighbor.Result[i].RoundTripTime
+				max = data.Neighbor.Result[i].RoundTripTime
+			}
+			if data.Neighbor.Result[i].RoundTripTime > max {
+				max = data.Neighbor.Result[i].RoundTripTime
+			}
+			if data.Neighbor.Result[i].RoundTripTime < min {
+				min = data.Neighbor.Result[i].RoundTripTime
+			}
+
+			sumping += data.Neighbor.Result[i].RoundTripTime
+			if data.Neighbor.Result[i].SyncState == "PERSIST_FINISHED" {
+				sumpersist++
+			}
+		}
+		ns.AvgPing = int(math.Round(float64(sumping)/float64(ncount)))
+		ns.MaxPing = max
+		ns.MinPing = min
+		ns.NeighborCount = ncount
+		ns.NeighborPersist = sumpersist
+	}
+
+	m["NodeStats"] = ns
+	t0_time := time.Now().Sub(t0)
+	m["DebugInfo"] = map[string]interface{}{
+			"GetnodestateTime": t1_time.String(),
+			"GetneighborTime": t2_time.String(),
+			"HandlingTime": t0_time.String(),
+	}
+
+	return nil, WSReply{Method: q.Method, Code: 0, Value: m,}
 }
 
 func (o *NKNOVH) apiSaveSettings(q *WSQuery, c *CLIENT) (err error, r WSReply) {

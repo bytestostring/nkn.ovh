@@ -5,20 +5,11 @@ import (
 		"time"
 		"net/http"
 )
-type RPCResponse struct {
-	Error struct {
-		Code int `json:"code"`
-		Data string `json:"data"`
-		Message string `json:"message"`
-	} `json:"error"`
-	Jsonrpc string `json:"jsonrpc"`
-	Id string `json:"id"`
-}
 
 type RPCRequest struct {
 	Jsonrpc string `json:"jsonrpc"`
 	Method string      `json:"method"`
-	Params *json.RawMessage `json:"params,ommitempty"`
+	Params *json.RawMessage `json:"params,omitempty"`
 	Id     int      `json:"id"`
 }
 
@@ -28,6 +19,7 @@ type JsonRPCConf struct {
 	Method string
 	Params *json.RawMessage
 	Client *http.Client
+	UnmarshalData interface{}
 }
 
 type NodeSt struct {
@@ -35,9 +27,18 @@ type NodeSt struct {
 	Neighbor NodeNeighbor
 }
 
+type RPCErrorState struct {
+	Code int `json:"code,omitempty"`
+	Data string `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+	PublicKey string `json:"publicKey,omitempty"`
+	WalletAddress string `json:"walletAddress,omitempty"`
+}
+
 type NodeState struct {
-	ID      string `json:"id"`
+	Id      string `json:"id"`
 	Jsonrpc string `json:"jsonrpc"`
+	Error *RPCErrorState `json:"error,omitempty"`
 	Result  struct {
 		Addr               string `json:"addr"`
 		Currtimestamp      int    `json:"currTimeStamp"`
@@ -47,7 +48,7 @@ type NodeState struct {
 		ProposalSubmitted  int    `json:"proposalSubmitted"`
 		ProtocolVersion    int    `json:"protocolVersion"`
 		Publickey          string `json:"publicKey"`
-		RelayMessageCount  int    `json:"relayMessageCount"`
+		RelayMessageCount  uint64 `json:"relayMessageCount"`
 		SyncState          string `json:"syncState"`
 		Tlsjsonrpcdomain   string `json:"tlsJsonRpcDomain"`
 		Tlsjsonrpcport     int    `json:"tlsJsonRpcPort"`
@@ -63,20 +64,21 @@ type NodeState struct {
 type NodeNeighbor struct {
 	ID      string `json:"id"`
 	Jsonrpc string `json:"jsonrpc"`
+	Error *RPCErrorState `json:"error,omitempty"`
 	Result []struct {
 		Addr               string `json:"addr"`
 		Height             int    `json:"height"`
 		ID                 string `json:"id"`
-	//	Isoutbound         bool   `json:"isOutbound"`
-	//	Jsonrpcport        int    `json:"jsonRpcPort"`
-	//	Protocolversion    int    `json:"protocolVersion"`
-	//	PublicKey          string `json:"publicKey"`
-	//	RoundTripTime      int    `json:"roundTripTime"`
+		Isoutbound         bool   `json:"isOutbound"`
+		Jsonrpcport        int    `json:"jsonRpcPort"`
+		Protocolversion    int    `json:"protocolVersion"`
+		PublicKey          string `json:"publicKey"`
+		RoundTripTime      int    `json:"roundTripTime"`
 		SyncState          string `json:"syncState"`
-	//	Tlsjsonrpcdomain   string `json:"tlsJsonRpcDomain"`
-	//	Tlsjsonrpcport     int    `json:"tlsJsonRpcPort"`
-	//	Tlswebsocketdomain string `json:"tlsWebsocketDomain"`
-	//	Tlswebsocketport   int    `json:"tlsWebsocketPort"`
-	//	Websocketport      int    `json:"websocketPort"`
+		Tlsjsonrpcdomain   string `json:"tlsJsonRpcDomain"`
+		Tlsjsonrpcport     int    `json:"tlsJsonRpcPort"`
+		Tlswebsocketdomain string `json:"tlsWebsocketDomain"`
+		Tlswebsocketport   int    `json:"tlsWebsocketPort"`
+		Websocketport      int    `json:"websocketPort"`
 	} `json: "result"`
 }

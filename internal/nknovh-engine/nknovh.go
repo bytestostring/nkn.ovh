@@ -13,6 +13,7 @@ import (
 	 "runtime"
 	 "sort"
 	 "errors"
+	 // "fmt"
 	 )
 
 type NKNOVH struct {
@@ -24,7 +25,9 @@ type NKNOVH struct {
 	http *Http
 	Nknsdk *Nknsdk
 	Web *Web
+	Reporter *Reporter
 }
+
 
 type Http struct {
 	NeighborClient *http.Client
@@ -40,6 +43,24 @@ type Threads struct {
 	Flush sync.Mutex
 }
 
+type Reporter struct {
+	dirty map[string]*DBNode
+	main map[string]*DBNode
+	mu_dirty sync.RWMutex
+	mu_main sync.RWMutex
+	dirtyReady chan bool
+	mainReady chan bool
+}
+
+
+type RPCError struct {
+	Code int
+	Status string
+	Description string
+	WalletAddress string
+	PublicKey string
+}
+
 type NodeInfo struct {
 	ips []string
 	m_nodes map[string][]uint64
@@ -47,7 +68,6 @@ type NodeInfo struct {
 	States []*NodeState
 	Neighbors []*NodeNeighbor
 	CounterFinish int
-	muxCounter sync.Mutex
 	mux sync.RWMutex
 	ANLast map[string]float64
 	ANLastMux sync.RWMutex
@@ -59,6 +79,7 @@ type DBNode struct {
 	Ip string
 	Ids []uint64
 	Dirty bool
+	LastStatus string
 }
 
 func (o *NKNOVH) Build() error {
@@ -116,12 +137,19 @@ func (o *NKNOVH) Build() error {
 	o.threads.Counter = 0
 	o.NodeInfo = &NodeInfo{
 							mux: sync.RWMutex{},
-							muxCounter: sync.Mutex{},
 							ips: make([]string, 0),
 							m_nodes: map[string][]uint64{},
 							d_nodes: map[string][]uint64{},
 							ANLast: map[string]float64{},
 						}
+
+	o.Reporter = &Reporter{
+					dirty: map[string]*DBNode{},
+					main: map[string]*DBNode{},
+					dirtyReady: make(chan bool),
+					mainReady: make(chan bool),
+				}
+
 	o.NodeInfo.ANArray = map[int]map[int][]int{}
 	o.NodeInfo.ANArrayMux = make([]sync.RWMutex, 0)
 	for i := 0; i < 256; i++ {
@@ -142,9 +170,10 @@ func (o *NKNOVH) Build() error {
 
 func (o *NKNOVH) Run() error {
 
-	var ch [4]chan bool = [4]chan bool{make(chan bool), make(chan bool), make(chan bool), make(chan bool)}
+	var ch []chan bool = make([]chan bool, 4)
 	
 	//Run polls
+	go o.reporterManager()
 	go o.createPoll("neighborPoll", o.conf.NeighborPoll.Interval, ch[0], false, o.neighborPoll)
 	go o.createPoll("mainPoll", o.conf.MainPoll.Interval, ch[1], true, o.mainPoll)
 	go o.createPoll("walletPoll", o.conf.Wallets.Interval, ch[2], false, o.walletPoll)
@@ -175,6 +204,58 @@ func (o *NKNOVH) Run() error {
 		}
 	}
 	return errors.New("Any poll has exited")
+}
+
+func (o *NKNOVH) reporterManager() {
+
+	dbnode_handling := func(nodes *map[string]*DBNode, dirty bool) error {
+		if len(*nodes) < 1 {
+			return nil
+		}
+		if dirty {
+			o.Reporter.mu_dirty.Lock()
+			defer o.Reporter.mu_dirty.Unlock()
+		} else {
+			o.Reporter.mu_main.Lock()
+			defer o.Reporter.mu_main.Unlock()
+		}
+
+		defer func() {
+			*nodes = map[string]*DBNode{}
+		}()
+
+		var hash_id int
+		var name string
+		for _, i := range *nodes {
+
+			loop2:
+			for _, node_id := range i.Ids {
+				row := o.sql.stmt["main"]["selectNodeHashNameById"].QueryRow(node_id)
+				err := row.Scan(&hash_id, &name)
+				switch {
+					case err == sql.ErrNoRows:
+						continue loop2
+					break
+					case err != nil:
+						continue loop2
+					break
+				}
+				//row = o.sql.stmt["main"]
+			}
+		}
+		return nil
+	}
+
+	for {
+		select {
+			case <- o.Reporter.dirtyReady:
+				go dbnode_handling(&o.Reporter.dirty, true)
+			break
+			case <- o.Reporter.mainReady:
+				go dbnode_handling(&o.Reporter.main, false)
+			break
+		}
+	}
 }
 
 func (o *NKNOVH) updateConfig(name string, value string) error {
@@ -268,6 +349,10 @@ func (o *NKNOVH) createPoll(pollName string, interval int, ch chan bool, even bo
 
 
 func (o *NKNOVH) dirtyPoll() error {
+	defer func() {
+		o.Reporter.dirtyReady <- true
+	}()
+
 	if err := o.getNodesFromDB(true); err != nil {
 		return err
 	}
@@ -280,6 +365,9 @@ func (o *NKNOVH) dirtyPoll() error {
 }
 
 func (o *NKNOVH) mainPoll() error {
+	defer func() {
+		o.Reporter.mainReady <- true
+	}()
 	if err := o.getNodesFromDB(false); err != nil {
 		return err
 	}
@@ -300,23 +388,25 @@ func (o *NKNOVH) neighborPoll() error {
 	if err := o.updateAN(); err != nil {
 		return err
 	}
-	if err := o.saveANStatus(); err != nil {
-		return err
-	}
 	if err := o.swapAndClearAN(); err != nil {
 		return err
 	} 
+	if err := o.saveANStatus(); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (o *NKNOVH) swapAndClearAN() error {
 	tx, err := o.sql.db["main"].Begin()
-	o.NodeInfo.ANLastMux.Lock()
-	defer o.NodeInfo.ANLastMux.Unlock()
+
 	if err != nil {
 		o.log.Syslog("Cannot create tx: " + err.Error(), "sql")
 		return err
 	}
+
+	o.NodeInfo.ANLastMux.Lock()
+	defer o.NodeInfo.ANLastMux.Unlock()
 	defer tx.Rollback()
 
 	if _, err = tx.Stmt(o.sql.stmt["main"]["clearANStats"]).Exec(); err != nil {
@@ -361,7 +451,7 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 		dbnode.Ip = k
 		dbnode.Ids = v
 		dbnode.Dirty = dirty
-		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client}
+		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
 		wg.Add(1)
 		*threads <- struct{}{}
 		go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
@@ -439,15 +529,35 @@ func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 			o.rmOldHistory(node_id)
 		}
 
+
 		// Exclude a node from dirtyPoll if it is in
 		if _, err := o.sql.stmt["main"]["updateNodeToMain"].Exec(&node_id); err != nil {
 			o.log.Syslog("Stmt updateNodeToMain has returned an error: ("+err.Error()+")", "sql")
 		}
 
 		//Detect out of NKN Network
+		var isNodeOuted bool
 		if err, b := o.isOutOfNetwork(dbnode, node); err == nil && b == true {
 			node.Result.SyncState = "OUT"
+			isNodeOuted = true
 		}
+
+		if dbnode.Dirty {
+			o.Reporter.mu_dirty.Lock()
+			dbnode.LastStatus = node.Result.SyncState
+			if _, b := o.Reporter.dirty[dbnode.Ip]; !b {
+				o.Reporter.dirty[dbnode.Ip] = dbnode
+			}
+			o.Reporter.mu_dirty.Unlock()
+		} else if isNodeOuted {
+			o.Reporter.mu_main.Lock()
+			dbnode.LastStatus = node.Result.SyncState
+			if _, b := o.Reporter.main[dbnode.Ip]; !b {
+				o.Reporter.main[dbnode.Ip] = dbnode
+			}
+			o.Reporter.mu_main.Unlock()
+		}
+
 		//Add the last data
 		row := o.sql.stmt["main"]["selectNodeLastIdByNodeId"].QueryRow(&node_id)
 		err := row.Scan(&id, &failcnt, &ftf)
@@ -494,19 +604,28 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 	//dummy, no routines
 	var wg sync.WaitGroup
 	r := &JsonRPCConf{Ip:node_ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: client}
-	if len(answer) == 0 {
-		for i := 1; i < 4; i++ {
-			time.Sleep(repeatInterval * time.Second)
-			wg.Add(1)
-			if err := o.getInfo(&wg, r, "UpdateNode", threads, params, true); err != nil {
-				o.log.Syslog("[Retry " + strconv.Itoa(i) + "] No answer from node \"" + node_ip + "\"", "nodes")
-				continue
-			}
-			o.log.Syslog("Node \"" + node_ip + "\" is working up now!", "main")
-			return nil
+	for i := 1; i < 4; i++ {
+		time.Sleep(repeatInterval * time.Second)
+		wg.Add(1)
+		if err := o.getInfo(&wg, r, "UpdateNode", threads, params, true); err != nil {
+			o.log.Syslog("[Retry " + strconv.Itoa(i) + "] No answer from node \"" + node_ip + "\"", "nodes")
+			continue
 		}
+		o.log.Syslog("Node \"" + node_ip + "\" is working up now!", "main")
+		return nil
 	}
+	
+
 	// Node gonna offline and into the dirty poll
+	if !dbnode.Dirty {
+		o.Reporter.mu_main.Lock()
+		dbnode.LastStatus = "OFFLINE"
+		if _, b := o.Reporter.main[dbnode.Ip]; !b {
+			o.Reporter.main[dbnode.Ip] = dbnode
+		}
+		o.Reporter.mu_main.Unlock()
+	}
+
 	var last_id uint64
 	var failcnt int64
 	var ftf uint8
@@ -567,7 +686,7 @@ func (o *NKNOVH) getNodesFromDB(dirty bool) error {
 }
 
 func (o *NKNOVH) saveANStatus() error {
-	rows, err := o.sql.stmt["main"]["selectAllAN"].Query()
+	rows, err := o.sql.stmt["main"]["selectAllANLast"].Query()
 	if err != nil { 
 		return err
 	}
@@ -582,8 +701,8 @@ func (o *NKNOVH) saveANStatus() error {
 
 		all_uptime uint64
 		relays uint64
-		average_uptime int
-		average_relays int
+		average_uptime uint64
+		average_relays uint64
 		relays_per_hour float64
 		persist_nodes_count int
 		proposalSubmittedAll int
@@ -616,8 +735,8 @@ func (o *NKNOVH) saveANStatus() error {
 			proposalSubmittedAll += int(proposalSubmitted.Int64)
 		}
 	}
-	average_relays = int(relays_per_hour/float64(nodes_count))
-	average_uptime = int(float64(all_uptime)/float64(nodes_count))
+	average_relays = uint64(relays_per_hour/float64(nodes_count))
+	average_uptime = uint64(float64(all_uptime)/float64(nodes_count))
 
 
 	//Get the latest height
@@ -627,7 +746,7 @@ func (o *NKNOVH) saveANStatus() error {
 	var average_blocksPerDay float64
 	const FirstHeightTS uint64 = 1561814790
 
-	row := o.sql.stmt["main"]["selectLastHeightAN"].QueryRow()
+	row := o.sql.stmt["main"]["selectLastHeightANLast"].QueryRow()
 	err = row.Scan(&last_height)
 	switch {
 	case err == sql.ErrNoRows:
@@ -659,38 +778,42 @@ func (o *NKNOVH) saveANStatus() error {
 func (o *NKNOVH) getInfo(wg *sync.WaitGroup, obj *JsonRPCConf, inside_method string, threads *chan struct{}, params ...interface{}) error {
 	defer wg.Done()
 	var data NodeSt
-	var rawdata RPCResponse
-	r := obj
-	answer, err := o.jrpc_get(r)
-	if err != nil {
-			//o.log.Syslog("Error after jrpc_get " + err.Error(), "jrpc")
+	switch inside_method {
+		case "UpdateNode", "UpdateNodeAN":
+			obj.UnmarshalData = &data.State
+		default:
+			obj.UnmarshalData = &data.Neighbor
+	}	
 
-			// Handling UpdateNode variations
-			if (inside_method == "UpdateNode") {
-				// check for no-goroutine recursive function
+	r := obj
+	_, err := o.jrpc_get(r)
+	if err != nil {
+
+		// Handling UpdateNode variations
+		switch inside_method {
+			case "UpdateNode":
 				if len(params) == 2 {
 					return err
 				}
 				if len(params) > 0 {
-					reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf(answer),reflect.ValueOf(params[0])})
+					reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf([]byte("")),reflect.ValueOf(params[0])})
 				} else {
-					reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf(answer)})
+					reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf([]byte(""))})
 				}
-			}
-
-			<-*threads
-			return err
+				<-*threads
+				return err
+			default:
+				<-*threads
+				return err
+		}
 	}
-	var err1 error = nil
 	switch method := obj.Method; method {
 	case "getnodestate":
-
 		//Handling UpdateNode variations
 		if inside_method == "UpdateNode" {
-			raw_err := json.Unmarshal(answer, &rawdata)
-			if raw_err == nil {
-				if (rawdata.Error.Code != 0) {
-					o.UpdateNodeErr(&rawdata, params[0])
+			if err == nil {
+				if data.State.Error != nil {
+					o.UpdateNodeErr(&data.State, params[0])
 					// check for no-goroutine recursive function
 					if len(params) < 2 {
 						<-*threads
@@ -699,46 +822,15 @@ func (o *NKNOVH) getInfo(wg *sync.WaitGroup, obj *JsonRPCConf, inside_method str
 				}
 			}
 		}
-		err1 = json.Unmarshal(answer, &data.State)
-	case "getneighbor":
-		err1 = json.Unmarshal(answer, &data.Neighbor)
-	}
-	
-
-	if err1 != nil {
-		o.log.Syslog("Error unmarshal after jrpc_get  " + err1.Error(), "jrpc")
-
-		//Handling UpdateNode variations
-		if (inside_method == "UpdateNode") {
-			// check for no-goroutine recursive function
-			if len(params) == 2 {
-				o.log.Syslog("it is recursive, unmarshal to State struct failed, exit with not nil", "main")
-				return err1
-			}
-			if len(params) > 0 {
-				reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf(answer),reflect.ValueOf(params[0])})
-			} else {
-				reflect.ValueOf(o).MethodByName(inside_method + "Fail").Call([]reflect.Value{reflect.ValueOf(answer)})
-			}
-		}
-
-		<-*threads
-		return err1
-	}
-
-	switch method := obj.Method; method {
-	case "getnodestate":
 		if len(params) > 0 {
 			reflect.ValueOf(o).MethodByName(inside_method).Call([]reflect.Value{reflect.ValueOf(&data.State), reflect.ValueOf(params[0])})
 		} else {
 			reflect.ValueOf(o).MethodByName(inside_method).Call([]reflect.Value{reflect.ValueOf(&data.State)})
 		}
-	break
 	case "getneighbor":
 		reflect.ValueOf(o).MethodByName(inside_method).Call([]reflect.Value{reflect.ValueOf(&data.Neighbor)})
-	break
 	}
-
+	
 	// check for no-goroutine recursive function
 	if len(params) != 2 {
 		<-*threads
@@ -754,43 +846,92 @@ func (o *NKNOVH) rmNodesByFcnt(over_failcnt int64, firsttime_failed uint8) error
 	return nil
 }
 
+func (o *NKNOVH) respErrorHandling(rpcerr *RPCErrorState) *RPCError {
+	obj := new(RPCError)
+	obj.Code = rpcerr.Code
+	if rpcerr.Message != "" {
+		obj.Description = rpcerr.Message
+	}
+	switch obj.Code {
+		case -32601:
+			obj.Status = "Method not found"
+			obj.Description = "The called method was not found on the server"
+		case -41001:
+			obj.Status = "SESSION EXPIRED"
+		case -41002:
+			obj.Status = "SERVICE CEILING"	
+		case -41003:
+			obj.Status = "ILLEGAL DATAFORMAT"
+		case -42001:
+			obj.Status = "INVALID METHOD"	
+		case -42002:
+			obj.Status = "INVALID PARAMS"
+		case -42003:
+			obj.Status = "VERIFY TOKEN ERROR"
+		case -43001:
+			obj.Status = "INVALID TRANSACTION"
+		case -43002:
+			obj.Status = "INVALID ASSET"	
+		case -43003:
+			obj.Status = "INVALID BLOCK"
+		case -43004:
+			obj.Status = "INVALID HASH"
+		case -43005:
+			obj.Status = "INVALID VERSION"
+		case -44001:
+			obj.Status = "UNKNOWN TRANSACTION"
+		case -44002:
+			obj.Status = "UNKNOWN ASSET"
+		case -44003:
+			obj.Status = "UNKNOWN BLOCK"
+		case -44004:
+			obj.Status = "UNKNOWN HASH"
+		case -45001:
+			obj.Status = "INTERNAL ERROR"
+		case -45022:
+			obj.Status = "GENERATING ID"
+			if x := rpcerr.WalletAddress; x != "" {
+				obj.WalletAddress = x
+			}
+			if x := rpcerr.PublicKey; x != "" {
+				obj.PublicKey = x
+			}
+		case -45024:
+			obj.Status = "PRUNING DB"
+		case -47001:
+			obj.Status = "SMARTCODE EXEC ERROR"
+		default:
+		scode := strconv.Itoa(obj.Code)
+		obj.Status = "UNKNOWN RESPONSE CODE"
+		obj.Description = "Unknown response code [" + scode + "]"
+	}
+	return obj
+}
 
-func (o *NKNOVH) UpdateNodeErr(resp *RPCResponse, params interface{}) {
+func (o *NKNOVH) UpdateNodeErr(resp *NodeState, params interface{}) {
 	dbnode := params.(*DBNode)
-	var status_means string
 	var failcnt int64
 	var ftf uint8
 	var last_id uint64
 
-	for _, node_id := range dbnode.Ids {
+	resperr := o.respErrorHandling(resp.Error)
 
-		switch code := resp.Error.Code; code {
-		case -45024:
-			status_means = "PRUNING DB"
-		break
-		case -45022:
-			status_means = "GENERATING ID"
-		break
-		default:
-			scode := strconv.Itoa(code)
-			status_means = "UNKNOWN [Code: " + scode + "]"
-		break
-		}
+	for _, node_id := range dbnode.Ids {
 
 		row := o.sql.stmt["main"]["selectNodeLastIdByNodeId"].QueryRow(&node_id)
 		err := row.Scan(&last_id, &failcnt, &ftf)
 		switch {
 		case err == sql.ErrNoRows:
-			if _, err1 := o.sql.stmt["main"]["insertNodeLast"].Exec(&node_id, "", 0, 0, 0, -1, 0, status_means, 0, "", 1, &ftf); err1 != nil {
-				o.log.Syslog("Stmt insertNodeLast has returned an error: ("+err1.Error()+")", "sql")
+			if _, err1 := o.sql.stmt["main"]["insertNodeLast"].Exec(&node_id, "", 0, 0, 0, -1, 0, &resperr.Status, 0, "", 1, &ftf); err1 != nil {
+				o.log.Syslog("Stmt insertNodeLast has returned an error: (" + err1.Error() + ")", "sql")
 			}
 		break
 		case err != nil:
-			o.log.Syslog("Can't execute row.Scan(): "+err.Error(), "sql")
+			o.log.Syslog("Can't execute row.Scan(): " + err.Error(), "sql")
 		break
 		default:
-			if _, err1 := o.sql.stmt["main"]["updateNodeLastById"].Exec("", 0, 0, 0, -1, 0, status_means, 0, "", failcnt, &ftf, &last_id); err1 != nil {
-				o.log.Syslog("Stmt updateNodeLastById has returned an error: ("+err1.Error()+")", "sql")
+			if _, err1 := o.sql.stmt["main"]["updateNodeLastById"].Exec("", 0, 0, 0, -1, 0, &resperr.Status, 0, "", &failcnt, &ftf, &last_id); err1 != nil {
+				o.log.Syslog("Stmt updateNodeLastById has returned an error: (" + err1.Error() + ")", "sql")
 			}
 		}
 	}
@@ -802,6 +943,8 @@ func (o *NKNOVH) UpdateNodeAN(node *NodeState) error {
 	re_ip := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
 	if tmp := re_ip.FindString(node.Result.Addr); tmp != "" {
 		ip = tmp
+	} else {
+		return nil
 	}
 	if _, err := o.sql.stmt["main"]["updateNodeByIpAN"].Exec(node.Result.ID, node.Result.SyncState, node.Result.Uptime, node.Result.ProposalSubmitted, node.Result.RelayMessageCount, node.Result.Height, node.Result.Version, node.Result.Currtimestamp, ip); err != nil {
 		o.log.Syslog("Can't execute updateNodeByIp: "+err.Error(), "sql")

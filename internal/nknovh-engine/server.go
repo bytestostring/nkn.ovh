@@ -22,44 +22,49 @@ type Web struct {
 	Helper *WebHelper
 	Methods map[string]func(*WSQuery,*CLIENT) (error, WSReply)
 	MethodsReqAuth []string
+	MethodsReadOnly []string
 }
 
 type WSQuery struct {
 	Method string `json:"Method"`
-	Value map[string]interface{} `json:"Value, omitempty"`
+	Value map[string]interface{} `json:"Value,omitempty"`
 }
 		
 type WSReply struct {
 	Method string `json:"Method"`
 	Code int `json:"Code"`
-	Error bool `json:"Error, omitempty`
-	ErrMessage string `json:"ErrMessage, omitempty"`
+	Error bool `json:"Error,omitempty`
+	ErrMessage string `json:"ErrMessage,omitempty"`
 	Value interface{}
 }
 
 type Netstatus struct {
 	Relays              int64   `json:"relays"`
-	AverageUptime       int     `json:"average_uptime"`
+ 	AverageUptime       int     `json:"average_uptime"`
 	AverageRelays       uint64  `json:"average_relays"`
 	RelaysPerHour       uint64  `json:"relays_per_hour"`
 	ProposalSubmitted   int     `json:"proposalSubmitted"`
 	PersistNodesCount   int     `json:"persist_nodes_count"`
 	NodesCount          int     `json:"nodes_count"`
-	LastHeight          int     `json:"last_height"`
-	LastTimestamp       uint64  `json:"last_timestamp"`
-	AverageBlockTime    float64 `json:"average_blockTime"`
+ 	LastHeight          int     `json:"last_height"`
+ 	LastTimestamp       uint64  `json:"last_timestamp"`
+ 	AverageBlockTime    float64 `json:"average_blockTime"`
 	AverageBlocksPerDay float64 `json:"average_blocksPerDay"`
 	LatestUpdate        string  `json:"latest_update"`
-} 
+}
+
 
 type CLIENT struct {
 	HashId int
 	Ip string
+	ReadOnly bool
 }
 
 func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods = map[string]func(*WSQuery, *CLIENT) (error, WSReply){}
-	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "savemysettings"}
+	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings"}
+
+	o.Web.MethodsReadOnly = []string{"getfullstack", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails"}
 
 	o.Web.Methods["auth"] = o.apiAuth
 	o.Web.Methods["genid"] = o.apiGenId
@@ -73,6 +78,7 @@ func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods["getdaemon"] = o.apiDaemon
 	o.Web.Methods["getlanguage"] = o .apiLanguage
 	o.Web.Methods["savemysettings"] = o.apiSaveSettings
+	o.Web.Methods["getnodedetails"] = o.apiGetNodeDetails
 	return
 }
 
@@ -95,7 +101,15 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[16] = WSReply{Code: 16, Error: true, ErrMessage: "Wallets overflow"}
 	o.Web.Response[17] = WSReply{Code: 17, Error: true, ErrMessage: "One or more of the passed wallets are not in the correct format"}
 	o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of passed nodes are not found. No changes."}
-	
+
+	//Link to apiGetNodeDetails
+	o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
+	o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply from the node before a timeout"}
+	o.Web.Response[21] = WSReply{Code: 21, Error: true, ErrMessage: "Cannot decode json of the node response (getnodestate)"}
+	o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but information about neighbors has not been received before a timeout"}
+	o.Web.Response[23] = WSReply{Code: 23, Error: true, ErrMessage: "Cannot decode json of the node response (getneighbor)"}
+	o.Web.Response[24] = WSReply{Code: 24, Error: true, ErrMessage: "Query returned an error (getneighbor)"}
+
 	o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 	o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
 	o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables are overflow"}
@@ -154,7 +168,7 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 				return
 			}
 			if i := FindStringInSlice(o.Web.MethodsReqAuth, q.Method); i != len(o.Web.MethodsReqAuth) {
-				if c.HashId == -1 {
+				if c.HashId == -1 && c.ReadOnly == false {
 					//Authorization needed
 					res := o.Web.Response[253]
 					res.Method = q.Method
@@ -167,6 +181,7 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 			}
 
 			o.updateUniqWatch(c)
+			
 			_, res := o.Web.Methods[q.Method](q, c)
 			if b, err := json.Marshal(res); err == nil {
 				wsutil.WriteServerMessage(conn, op, b)

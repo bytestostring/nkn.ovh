@@ -17,11 +17,18 @@ func (o *NKNOVH) jrpc_get(obj *JsonRPCConf) ([]byte, error) {
 			return answer, err
 		} else {
 			defer res.Body.Close()
-			answer, err := ioutil.ReadAll(res.Body)
+			if obj.UnmarshalData == nil {
+				answer, err := ioutil.ReadAll(res.Body)
+				if err != nil {
+					return answer, err
+				}
+				return answer, nil
+			}
+			err := json.NewDecoder(res.Body).Decode(obj.UnmarshalData)
 			if err != nil {
+				answer = []byte(err.Error())
 				return answer, err
 			}
-			//o.log.Syslog("ANSWER RAW: " +string(answer), "nodes")
 			return answer, nil
 		}
 	}

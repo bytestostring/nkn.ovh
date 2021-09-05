@@ -15,9 +15,9 @@ import (
 		)	
 
 // IPv4 to int
-func IP4toInt(IPv4Addr string) int {
+func IP4toInt(ip string) int {
 	IPv4Int := big.NewInt(0)
-	IPv4Int.SetBytes(net.ParseIP(IPv4Addr).To4())
+	IPv4Int.SetBytes(net.ParseIP(ip).To4())
 	return int(IPv4Int.Uint64())
 }
 

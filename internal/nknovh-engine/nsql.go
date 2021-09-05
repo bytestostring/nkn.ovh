@@ -24,7 +24,7 @@ func (o *Mysql) prepare() error {
 		"main": map[string]string{
 			"fetchUniqs": "SELECT * FROM uniq",
 			"insertAN": "INSERT IGNORE INTO all_nodes(ip,addr,node_id,syncState,height) VALUES(?,?,?,?,?)",
-			"selectLastHeightAN": "SELECT height FROM all_nodes WHERE height = (SELECT MAX(height) FROM all_nodes WHERE syncState=\"PERSIST_FINISHED\") LIMIT 1",
+			"selectLastHeightANLast": "SELECT height FROM all_nodes_last WHERE height = (SELECT MAX(height) FROM all_nodes_last WHERE syncState=\"PERSIST_FINISHED\") LIMIT 1",
 			"selectIdByAddrAN": "SELECT id FROM all_nodes WHERE addr = ?",
 			"selectIdByIpANLast": "SELECT id FROM all_nodes_last WHERE ip = ?",
 			"selectAllIpsAN": "SELECT ip FROM all_nodes",
@@ -32,11 +32,12 @@ func (o *Mysql) prepare() error {
 			"clearAN": "DELETE FROM all_nodes",
 			"copyANtoStats": "INSERT INTO all_nodes_last SELECT * FROM all_nodes",
 			"updateNodeByIpAN": "UPDATE all_nodes SET node_id = ?, syncState = ?, uptime = ?, proposalSubmitted = ?, relayMessageCount = ?, height = ?, version = ?, currtimestamp = ?, latest_update = CURRENT_TIMESTAMP() WHERE ip = ?",
-			"selectAllAN": "SELECT syncState, uptime, proposalSubmitted, relayMessageCount FROM all_nodes",
+			"selectAllANLast": "SELECT syncState, uptime, proposalSubmitted, relayMessageCount FROM all_nodes_last",
 			"insertANStats": "INSERT INTO all_nodes_stats(relays, average_uptime, average_relays, relays_per_hour, proposalSubmitted, persist_nodes_count, nodes_count, last_height, last_timestamp, average_blockTime, average_blocksPerDay) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
 			"selectAllNodesDirty": "SELECT id, ip FROM nodes WHERE dirty = 1 ORDER BY dirty_fcnt ASC",
 			"selectAllNodesNotDirty": "SELECT id, ip FROM nodes WHERE dirty = 0",
 			"selectNodeIpById": "SELECT ip FROM nodes WHERE id = ?",
+			"selectNodeHashNameById": "SELECT hash_id, name FROM nodes WHERE id = ?",
 			"insertNodeStats": "INSERT INTO nodes_history(node_id,NID,Currtimestamp,Height,ProposalSubmitted,ProtocolVersion,RelayMessageCount,SyncState,Uptime,Version) VALUES(?,?,?,?,?,?,?,?,?,?)",
 			"countNodeHistory": "SELECT count(id) as cnt FROM nodes_history WHERE node_id = ?",
 			"rmOldHistory": "DELETE FROM nodes_history WHERE node_id = ? ORDER BY id ASC LIMIT ?",
@@ -73,6 +74,7 @@ func (o *Mysql) prepare() error {
 			"WebGetPrices": "SELECT name, price FROM prices",
 			"WebGetDaemon": "SELECT name, value FROM daemon",
 			"WebGetMyNodeLastInfo": "SELECT node_id,NID,Currtimestamp,Height,ProposalSubmitted,ProtocolVersion,RelayMessageCount,SyncState,Uptime,Version,latest_update FROM nodes_last WHERE node_id = ?",
+			"WebSelectNodeInfoById+HashId": "SELECT name, ip FROM nodes WHERE id = ? AND hash_id = ?",
 		},
 	}
 	var stmt *sql.Stmt
