@@ -3,7 +3,7 @@
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title">{{.LANG.Modal.changelog.title}}</h3> <a href="#close" title="{{.LANG.Modal.control.close}}" class="close" onclick="closeModal('changelog')">X</a></div><div class="modal-body">
-{{if eq .LANG.CurrentLang "ru_RU"}}
+{{if eq .LANG.CurrentLang "ru_RU" }}
 	<h4>16 Августа 2021 (Версия 1.1.0)</h4>
 	<p>- Добавлен обратный отсчет до следующего запроса по API.</p>
 	<p>- Добавлен постраничный вывод таблицы узлов.</p>
@@ -39,7 +39,7 @@
 	<p>- Добавлен throttling по IP адресу на генерацию ID.</p>
 	<p>- Незначительные исправления в NKNC Daemon (Golang).</p>
 {{end}}
-{{if eq .LANG.CurrentLang "en_US"}}
+{{if or (eq .LANG.CurrentLang "en_US") (eq .LANG.CurrentLang "zn_CN") }}
 	<h4>16 August 2021 (Version 1.1.0)</h4>
 	<p>- Added countdown to next API request.</p>
 	<p>- Added pagination of the node table.</p>

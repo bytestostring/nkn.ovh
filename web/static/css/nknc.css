@@ -740,11 +740,14 @@ padding: 6px;
 .switchLang span {
 	font-size: 14px;
 	cursor: pointer;
-	background: rgba(15,15,30,0.8);
+	background: rgba(15,15,30,0.7);
 	color: white;
 	padding: 6px;
 }
+
+.switchLang span:not(:last-child) {
+	border-right: 1px dashed yellow;
+}
 .switchLang span.active {
-	text-decoration: underline;
 	background: rgba(150,15,30,0.8);
 }

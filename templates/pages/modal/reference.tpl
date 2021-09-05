@@ -3,7 +3,7 @@
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title">{{.LANG.Modal.reference.title}}</h3> <a href="#close" title="{{.LANG.Modal.control.close}}" class="close" onclick="closeModal('reference')">X</a></div><div class="modal-body">
-{{if eq .LANG.CurrentLang "en_US"}}
+{{if or (eq .LANG.CurrentLang "en_US") (eq .LANG.CurrentLang "zn_CN") }}
 	<h3>Basic information</h3>
 	<p> - The site updates automatically every minute.</p>
 	<p> - NKN Network statistics is updated once per 20 minutes.</p>

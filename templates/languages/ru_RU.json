@@ -1,7 +1,8 @@
 {
 	"lang_values":{
 		"en_US":"English",
-		"ru_RU":"Русский"
+		"ru_RU":"Русский",
+		"zn_CN":"Китайский"
 	},
 	"current_lang":"ru_RU",
 	"sense_timezone":"",

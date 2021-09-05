@@ -20,7 +20,7 @@
 
 	var attention = `<div>{{ .LANG.Attention.text }}<br><a href="/login/auth/{{ .Hash }}/">/login/auth/{{ .Hash }}/</a><br><input type="button" value="{{ .LANG.Attention.btn_text }}" class="attention_yes" onclick="hideAttention()"></div>`
 
-	var view_switchLang = `<div class="switchLang" id="switchLang"><div id="site_version"></div><span onclick="setLanguage('view_src', 'en_US')" id="lang_en_US">EN</span><span onclick="setLanguage('view_src', 'ru_RU')" id="lang_ru_RU">RU</span></div>`
+	var view_switchLang = `<div class="switchLang" id="switchLang"><div id="site_version"></div><span onclick="setLanguage('view_src', 'en_US')" id="lang_en_US">EN</span><span onclick="setLanguage('view_src', 'ru_RU')" id="lang_ru_RU">RU</span><span onclick="setLanguage('view_src', 'zn_CN')" id="lang_zn_CN">CN</span></div>`
 
 	var view_logo = `<div class="logo"><div><img src="/static/images/nkn-logo.png" alt=""></div><div>. OVH</div></div><div style="clear: both;"></div>`
 

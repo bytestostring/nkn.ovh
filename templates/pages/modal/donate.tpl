@@ -3,7 +3,7 @@
 <div class="modal-content">
 <div class="modal-header">
 <h3 class="modal-title">{{.LANG.Modal.donate.title}}</h3> <a href="#close" title="{{.LANG.Modal.control.close}}" class="close" onclick="closeModal('donate')">X</a></div><div class="modal-body">
-{{if eq .LANG.CurrentLang "en_US"}}
+{{if or (eq .LANG.CurrentLang "en_US") (eq .LANG.CurrentLang "zn_CN") }}
 	<p>If you wanna help this project:</p>
 {{end}}
 {{if eq .LANG.CurrentLang "ru_RU"}}
