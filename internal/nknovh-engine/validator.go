@@ -45,7 +45,3 @@ func (o *NKNOVH) isNodeStateValid(s *NodeState) bool {
 	return true
 }
 
-func (o *NKNOVH) isNodeNeighborValid(s *NodeNeighbor) bool {
-
-
-}
