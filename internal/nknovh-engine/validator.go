@@ -14,11 +14,14 @@ func (o *NKNOVH) isNodeStateValid(s *NodeState) bool {
 		return false
 	}
 
-	if len(s.Result.ID) != 64 {
+	if len(s.Result.ID) != 64 || len(s.Result.PublicKey) != 64 {
 		return false
 	}
 	re_id := regexp.MustCompile(`^([A-Za-z0-9]{64})$`)
 	if b = re_id.MatchString(s.Result.ID); !b {
+		return false
+	}
+	if b = re_id.MatchString(s.Result.PublicKey); !b {
 		return false
 	}
 	re_state := regexp.MustCompile(`^WAIT_FOR_SYNCING|SYNC_STARTED|SYNC_FINISHED|PERSIST_FINISHED$`)
@@ -40,4 +43,9 @@ func (o *NKNOVH) isNodeStateValid(s *NodeState) bool {
 		return false
 	}
 	return true
+}
+
+func (o *NKNOVH) isNodeNeighborValid(s *NodeNeighbor) bool {
+
+
 }

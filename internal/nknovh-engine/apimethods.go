@@ -79,7 +79,7 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 		return o.WsError(q, 21)
 	}
 	if b := o.isNodeStateValid(&data.State); !b {
-		return o.WsError(q, 555)
+		return o.WsError(q, 25)
 	}
 	m := map[string]interface{}{}
 
@@ -636,7 +636,7 @@ func (o *NKNOVH) apiFullstack(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 }
 
 func (o *NKNOVH) apiLanguage(q *WSQuery, c *CLIENT) (err error, r WSReply) {
-	lang_packages := []string{"en_US", "ru_RU", "zn_CN"}
+	lang_packages := []string{"en_US", "ru_RU"}
 	var locale string
 	var view string
 	var ok bool

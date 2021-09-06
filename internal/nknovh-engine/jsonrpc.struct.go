@@ -47,7 +47,7 @@ type NodeState struct {
 		Jsonrpcport        int    `json:"jsonRpcPort"`
 		ProposalSubmitted  int    `json:"proposalSubmitted"`
 		ProtocolVersion    int    `json:"protocolVersion"`
-		Publickey          string `json:"publicKey"`
+		PublicKey          string `json:"publicKey"`
 		RelayMessageCount  uint64 `json:"relayMessageCount"`
 		SyncState          string `json:"syncState"`
 		Tlsjsonrpcdomain   string `json:"tlsJsonRpcDomain"`
