@@ -636,7 +636,7 @@ func (o *NKNOVH) apiFullstack(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 }
 
 func (o *NKNOVH) apiLanguage(q *WSQuery, c *CLIENT) (err error, r WSReply) {
-	lang_packages := []string{"en_US", "ru_RU"}
+	lang_packages := []string{"en_US", "ru_RU", "zn_CN"}
 	var locale string
 	var view string
 	var ok bool
