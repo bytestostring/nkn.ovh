@@ -59,7 +59,7 @@ cp conf.json.example conf.json
 You can check journal files in the **logs** directory
 
 
-## Update from previous version (for building from sources)
+## Upgrade from previous version (for building from sources)
 
 
 0. Stop your nknovh: kill -9 / systemctl stop nknovh / etc 
