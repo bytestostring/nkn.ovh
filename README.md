@@ -61,31 +61,25 @@ You can check journal files in the **logs** directory
 
 ## Upgrade from previous version (for building from sources)
 
-
 0. Stop your nknovh: kill -9 / systemctl stop nknovh / etc 
 
 1. Check the version your nknovh
 
 ```
 cat conf.json | grep "Version"
-
 ```
 
 2. Upgrade using git, and recompile main daemon.
 
 ```
-
 git pull
 go build cmd/nknovh/nknovh.go
-
 ```
 
 3. Optionally! ONLY If you want to recompile .wasm binary from source: 
 
 ```
-
 GOOS=js GOARCH=wasm go build -ldflags=-s -o web/static/lib.wasm cmd/wasm/wasm.go
-
 ```
 
 Note, if you have compiled lib.wasm, then you must copy wasm_exec.js from your golang distribution to web/static/js directory.
@@ -96,17 +90,13 @@ Example, your previous version was "1.1.0" and you need upgrade your database st
 
 
 ```
-
 mysql -uroot -p nknovh < sqlupgrade/from-1.1.0-to-1.1.0-dirty-4.sql
-
 ```
 
 5. Start the nknovh:
 
 ```
-
 ./nknovh
 # Or if you are using the systemctl script
 systemctl start nknovh
-
 ```
