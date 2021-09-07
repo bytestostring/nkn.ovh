@@ -79,6 +79,7 @@ func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods["getlanguage"] = o .apiLanguage
 	o.Web.Methods["savemysettings"] = o.apiSaveSettings
 	o.Web.Methods["getnodedetails"] = o.apiGetNodeDetails
+	o.Web.Methods["getnodeipbypublickey"] = o.apiGetNodeIpByPublicKey
 	return
 }
 
@@ -109,6 +110,10 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but information about neighbors has not been received before a timeout"}
 	o.Web.Response[23] = WSReply{Code: 23, Error: true, ErrMessage: "Cannot decode json of the node response (getneighbor)"}
 	o.Web.Response[24] = WSReply{Code: 24, Error: true, ErrMessage: "Query returned an error (getneighbor)"}
+
+	//Link to apiGetNodeIpByPublicKey
+	o.Web.Response[25] = WSReply{Code: 25, Error: true, ErrMessage: "PublicKey is not set"}
+	o.Web.Response[26] = WSReply{Code: 26, Error: true, ErrMessage: "Wrong PublicKey passed"}
 
 	o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 	o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}

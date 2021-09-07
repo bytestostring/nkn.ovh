@@ -38,6 +38,42 @@ func (o *NKNOVH) WsError(q *WSQuery, code int) (err error, r WSReply) {
 	return nil, WSReply{Method: q.Method, Code: -1, Error: true, ErrMessage: "Response key is not found"}
 }
 
+
+func (o *NKNOVH) apiGetNodeIpByPublicKey(q *WSQuery, c *CLIENT) (err error, r WSReply) {
+	var raw_pubkey string
+	var ok bool
+	if raw_pubkey, ok = q.Value["PublicKey"].(string); !ok {
+		o.WsError(q, 25)
+	}
+	if len(raw_pubkey) != 64 {
+		return o.WsError(q, 26)
+	}
+	o.NodeInfo.ANLastMux.RLock()
+	defer o.NodeInfo.ANLastMux.RUnlock()
+	rows, err := o.sql.stmt["main"]["WebSelectNodeIpByPublicKeyAN"].Query(raw_pubkey)
+	if err != nil {
+		return o.WsError(q, 1)
+	}
+	defer rows.Close()
+
+	var dbip string
+	db_ips := make([]string, 0)
+	for rows.Next() {
+		if err = rows.Scan(&dbip); err != nil {
+			return o.WsError(q, 1)
+		}
+		db_ips = append(db_ips, dbip)
+	}
+	if len(db_ips) == 0 {
+		return o.WsError(q, 3)
+	}
+
+	m := map[string]interface{}{}
+	m["IpList"] = db_ips
+
+	return nil, WSReply{Method: q.Method, Code: 0, Value: m,}
+}
+
 func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 
 	t0 := time.Now()
@@ -78,7 +114,7 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	if err != nil && len(res) > 0 {
 		return o.WsError(q, 21)
 	}
-	if b := o.isNodeStateValid(&data.State); !b {
+	if b := o.Validator.IsNodeStateValid(&data.State); !b {
 		return o.WsError(q, 25)
 	}
 	m := map[string]interface{}{}

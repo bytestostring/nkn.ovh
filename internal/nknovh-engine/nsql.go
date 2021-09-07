@@ -23,7 +23,7 @@ func (o *Mysql) prepare() error {
 	queries := map[string]map[string]string{
 		"main": map[string]string{
 			"fetchUniqs": "SELECT * FROM uniq",
-			"insertAN": "INSERT IGNORE INTO all_nodes(ip,addr,node_id,syncState,height) VALUES(?,?,?,?,?)",
+			"insertAN": "INSERT IGNORE INTO all_nodes(ip,addr,NID,PublicKey,syncState,height) VALUES(?,?,?,?,?,?)",
 			"selectLastHeightANLast": "SELECT height FROM all_nodes_last WHERE height = (SELECT MAX(height) FROM all_nodes_last WHERE syncState=\"PERSIST_FINISHED\") LIMIT 1",
 			"selectIdByAddrAN": "SELECT id FROM all_nodes WHERE addr = ?",
 			"selectIdByIpANLast": "SELECT id FROM all_nodes_last WHERE ip = ?",
@@ -31,7 +31,7 @@ func (o *Mysql) prepare() error {
 			"clearANStats": "DELETE FROM all_nodes_last",
 			"clearAN": "DELETE FROM all_nodes",
 			"copyANtoStats": "INSERT INTO all_nodes_last SELECT * FROM all_nodes",
-			"updateNodeByIpAN": "UPDATE all_nodes SET node_id = ?, syncState = ?, uptime = ?, proposalSubmitted = ?, relayMessageCount = ?, height = ?, version = ?, currtimestamp = ?, latest_update = CURRENT_TIMESTAMP() WHERE ip = ?",
+			"updateNodeByIpAN": "UPDATE all_nodes SET syncState = ?, uptime = ?, proposalSubmitted = ?, relayMessageCount = ?, height = ?, version = ?, currtimestamp = ?, latest_update = CURRENT_TIMESTAMP() WHERE ip = ?",
 			"selectAllANLast": "SELECT syncState, uptime, proposalSubmitted, relayMessageCount FROM all_nodes_last",
 			"insertANStats": "INSERT INTO all_nodes_stats(relays, average_uptime, average_relays, relays_per_hour, proposalSubmitted, persist_nodes_count, nodes_count, last_height, last_timestamp, average_blockTime, average_blocksPerDay) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
 			"selectAllNodesDirty": "SELECT id, ip FROM nodes WHERE dirty = 1 ORDER BY dirty_fcnt ASC",
@@ -75,6 +75,7 @@ func (o *Mysql) prepare() error {
 			"WebGetDaemon": "SELECT name, value FROM daemon",
 			"WebGetMyNodeLastInfo": "SELECT node_id,NID,Currtimestamp,Height,ProposalSubmitted,ProtocolVersion,RelayMessageCount,SyncState,Uptime,Version,latest_update FROM nodes_last WHERE node_id = ?",
 			"WebSelectNodeInfoById+HashId": "SELECT name, ip FROM nodes WHERE id = ? AND hash_id = ?",
+			"WebSelectNodeIpByPublicKeyAN": "SELECT ip FROM all_nodes_last WHERE PublicKey = ?",
 		},
 	}
 	var stmt *sql.Stmt

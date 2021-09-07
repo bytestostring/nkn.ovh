@@ -26,6 +26,7 @@ type NKNOVH struct {
 	Nknsdk *Nknsdk
 	Web *Web
 	Reporter *Reporter
+	Validator *Validator
 }
 
 
@@ -129,6 +130,9 @@ func (o *NKNOVH) Build() error {
 	if err := o.nknConnect(); err != nil {
 		return err
 	}
+
+	o.Validator = buildValidator()
+
 	o.threads = &Threads{
 							Neighbors: make(chan struct{}, o.conf.Threads.Neighbors),
 							Main: make(chan struct{}, o.conf.Threads.Main),
@@ -516,7 +520,7 @@ func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
 
 func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 
-	if b := o.isNodeStateValid(node); !b {
+	if b := o.Validator.IsNodeStateValid(node); !b {
 		o.log.Syslog("isNodeStateValid has returned false", "nodes")
 		return
 	}
@@ -569,7 +573,7 @@ func (o *NKNOVH) UpdateNode(node *NodeState, params interface{}) {
 		err := row.Scan(&id, &failcnt, &ftf)
 		switch {
 		case err == sql.ErrNoRows:
-			if _, err1 := o.sql.stmt["main"]["insertNodeLast"].Exec(&node_id, &node.Result.ID, &node.Result.Currtimestamp, &node.Result.Height, &node.Result.ProposalSubmitted, &node.Result.ProtocolVersion, &node.Result.RelayMessageCount, &node.Result.SyncState, &node.Result.Uptime, &node.Result.Version, 0, 0); err1 != nil {
+			if _, err1 := o.sql.stmt["main"]["insertNodeLast"].Exec(node_id, &node.Result.ID, &node.Result.Currtimestamp, &node.Result.Height, &node.Result.ProposalSubmitted, &node.Result.ProtocolVersion, &node.Result.RelayMessageCount, &node.Result.SyncState, &node.Result.Uptime, &node.Result.Version, 0, 0); err1 != nil {
 				o.log.Syslog("Stmt insertNodeLast has returned an error: ("+err1.Error()+")", "sql")
 			}
 		break
@@ -947,7 +951,7 @@ func (o *NKNOVH) UpdateNodeErr(resp *NodeState, params interface{}) {
 func (o *NKNOVH) UpdateNodeAN(node *NodeState) error {
 	var ip string
 
-	if b := o.isNodeStateValid(node); !b {
+	if b := o.Validator.IsNodeStateValid(node); !b {
 		return errors.New("Invalid NodeState")
 	}
 
@@ -958,7 +962,7 @@ func (o *NKNOVH) UpdateNodeAN(node *NodeState) error {
 		return nil
 	}
 
-	if _, err := o.sql.stmt["main"]["updateNodeByIpAN"].Exec(node.Result.ID, node.Result.SyncState, node.Result.Uptime, node.Result.ProposalSubmitted, node.Result.RelayMessageCount, node.Result.Height, node.Result.Version, node.Result.Currtimestamp, ip); err != nil {
+	if _, err := o.sql.stmt["main"]["updateNodeByIpAN"].Exec(node.Result.SyncState, node.Result.Uptime, node.Result.ProposalSubmitted, node.Result.RelayMessageCount, node.Result.Height, node.Result.Version, node.Result.Currtimestamp, ip); err != nil {
 		o.log.Syslog("Can't execute updateNodeByIp: "+err.Error(), "sql")
 		return err
 	}
@@ -1093,8 +1097,13 @@ func (o *NKNOVH) searchIP(ip string) (int, error) {
 
 func (o *NKNOVH) AddNeighborAN(nei *NodeNeighbor) error {
 	
-	re_ip := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
+	if b := o.Validator.IsNodeNeighborValid(nei); !b {
+		s := "NodeNeighbor is not valid"
+		o.log.Syslog(s, "main")
+		return errors.New(s)
+	}
 
+	re_ip := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
 	var ip string
 	var l int = len(nei.Result)
 	var search int
@@ -1115,7 +1124,7 @@ func (o *NKNOVH) AddNeighborAN(nei *NodeNeighbor) error {
 			continue
 		}
 		
-		if _, err1 := o.sql.stmt["main"]["insertAN"].Exec(ip,&nei.Result[n].Addr,&nei.Result[n].ID,&nei.Result[n].SyncState,&nei.Result[n].Height); err1 != nil {
+		if _, err1 := o.sql.stmt["main"]["insertAN"].Exec(ip,&nei.Result[n].Addr,&nei.Result[n].ID,&nei.Result[n].PublicKey,&nei.Result[n].SyncState,&nei.Result[n].Height); err1 != nil {
 			o.log.Syslog("Stmt insertToAllNodes has returned an error: ("+err1.Error()+")", "sql")
 			continue
 		}
