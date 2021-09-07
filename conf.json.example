@@ -1,5 +1,5 @@
 {
-"Version": "1.1.0-dirty",
+"Version": "1.1.0-dirty-4",
 "HttpServer":
         {
                 "Port": 8081

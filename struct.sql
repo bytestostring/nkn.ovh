@@ -2,7 +2,8 @@ CREATE TABLE `all_nodes` (
   `id` int(10) UNSIGNED NOT NULL,
   `ip` varchar(15) NOT NULL,
   `addr` varchar(32) NOT NULL,
-  `node_id` varchar(65) DEFAULT NULL,
+  `NID` varchar(64) DEFAULT NULL,
+  `PublicKey` varchar(64) DEFAULT NULL,
   `syncState` varchar(32) NOT NULL,
   `uptime` int(11) DEFAULT NULL,
   `proposalSubmitted` int(11) DEFAULT NULL,
@@ -17,7 +18,8 @@ CREATE TABLE `all_nodes_last` (
   `id` int(10) UNSIGNED NOT NULL,
   `ip` varchar(15) NOT NULL,
   `addr` varchar(32) NOT NULL,
-  `node_id` varchar(65) DEFAULT NULL,
+  `NID` varchar(64) DEFAULT NULL,
+  `PublicKey` varchar(64) DEFAULT NULL,
   `syncState` varchar(32) NOT NULL,
   `uptime` int(11) DEFAULT NULL,
   `proposalSubmitted` int(11) DEFAULT NULL,
@@ -133,6 +135,14 @@ ALTER TABLE `all_nodes`
   ADD KEY `syncState` (`syncState`),
   ADD KEY `ip` (`ip`);
 
+ALTER TABLE `all_nodes_last`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `addr` (`addr`),
+  ADD KEY `syncState` (`syncState`),
+  ADD KEY `ip` (`ip`),
+  ADD KEY `NID` (`NID`),
+  ADD KEY `PublicKey` (`PublicKey`);
+
 ALTER TABLE `all_nodes_stats`
   ADD PRIMARY KEY (`id`);
 
@@ -176,17 +186,11 @@ ALTER TABLE `watchers`
   ADD UNIQUE KEY `hash_id` (`hash_id`),
   ADD UNIQUE KEY `ro_hash` (`ro_hash`);
 
-ALTER TABLE `all_nodes_last`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `addr` (`addr`),
-  ADD KEY `syncState` (`syncState`),
-  ADD KEY `ip` (`ip`);
-
-
-ALTER TABLE `all_nodes_last`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `all_nodes`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+ALTER TABLE `all_nodes_last`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `all_nodes_stats`
