@@ -66,6 +66,7 @@ type NodeInfo struct {
 	ips []string
 	m_nodes map[string][]uint64
 	d_nodes map[string][]uint64
+	dirty_keys []string
 	States []*NodeState
 	Neighbors []*NodeNeighbor
 	CounterFinish int
@@ -449,16 +450,31 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 		threads = &o.threads.Main
 	}
 
-	for k, v := range *nodes_list {
 
-		dbnode := new(DBNode)
-		dbnode.Ip = k
-		dbnode.Ids = v
-		dbnode.Dirty = dirty
-		r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
-		wg.Add(1)
-		*threads <- struct{}{}
-		go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
+	if !dirty {
+		for k, v := range *nodes_list {
+
+			dbnode := new(DBNode)
+			dbnode.Ip = k
+			dbnode.Ids = v
+			dbnode.Dirty = dirty
+			r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
+			wg.Add(1)
+			*threads <- struct{}{}
+			go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
+		}
+	} else {
+		l := len(o.NodeInfo.dirty_keys)
+		for i := 0; i < l; i++ {
+			dbnode := new(DBNode)
+			dbnode.Ip = o.NodeInfo.dirty_keys[i]
+			dbnode.Ids = (*nodes_list)[dbnode.Ip]
+			dbnode.Dirty = dirty
+			r := &JsonRPCConf{Ip:dbnode.Ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
+			wg.Add(1)
+			*threads <- struct{}{}
+			go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)	
+		}
 	}
 	wg.Wait()
 	num_routines := runtime.NumGoroutine()
@@ -668,7 +684,8 @@ func (o *NKNOVH) UpdateNodeFail(answer []byte, params interface{}) error {
 func (o *NKNOVH) getNodesFromDB(dirty bool) error {
 	var switch_dirty string
 	var nodes_list *map[string][]uint64
-	if dirty == true {
+	dirty_keys := make([]string, 0)
+	if dirty {
 		switch_dirty = "selectAllNodesDirty"
 		nodes_list = &o.NodeInfo.d_nodes
 	} else {
@@ -691,6 +708,12 @@ func (o *NKNOVH) getNodesFromDB(dirty bool) error {
 		}
 
 		(*nodes_list)[db_ip] = append((*nodes_list)[db_ip], node_id)
+		if dirty {
+			dirty_keys = append(dirty_keys, db_ip)
+		}
+	}
+	if dirty {
+		o.NodeInfo.dirty_keys = dirty_keys
 	}
 	return nil
 }
