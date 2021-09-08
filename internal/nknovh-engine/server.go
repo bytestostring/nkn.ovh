@@ -127,6 +127,11 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID length"}
 	o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID is not found"}
 	o.Web.Response[500] = WSReply{Code: 500, Error: true, ErrMessage: "Internal server error"}
+
+	//Main errors
+	o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "Method variable is not passed or it has wrong format"}
+	o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
+
 	return
 }
 
@@ -255,20 +260,23 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 
 	if x := params.ByName("method"); x != "" {
 		if _, ok = o.Web.Methods[x]; !ok {
-			w.Write([]byte("No method found"))
+			_, wsreply := o.WsError(data, 1001)
+			o.WriteJson(&wsreply, w)
 			return
 		}
 		data.Method = x
 	} else {
 		if val, ok := value["Method"].(string); ok {
 			if _, ok = o.Web.Methods[val]; !ok {
-				w.Write([]byte("No method found"))
+				_, wsreply := o.WsError(data, 1001)
+				o.WriteJson(&wsreply, w)
 				return
 			}
 			data.Method = val
 			delete(value, "Method")
 		} else {
-			w.Write([]byte("No method value"))
+			_, wsreply := o.WsError(data, 1000)
+			o.WriteJson(&wsreply, w)
 			return
 		}
 	}
@@ -280,12 +288,7 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 			//DEPRECATED AND WILL BE REMOVED
 			if hash, ok = value["hash"].(string); !ok {
 				res := o.Web.Response[253]
-				var b = make([]byte, 0)
-				if b, err = json.Marshal(res); err != nil {
-					o.InternalErrorJson(w, err)
-					return
-				}
-				w.Write(b)
+				o.WriteJson(&res, w)
 				return
 			}
 		}
@@ -299,12 +302,7 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 		_, reply := o.apiAuth(auth, c)
 
 		if reply.Code != 0 {
-			var b = make([]byte, 0)
-			if b, err = json.Marshal(reply); err != nil {
-				o.InternalErrorJson(w, err)
-				return
-			}
-			w.Write(b)
+			o.WriteJson(&reply, w)
 			return
 		}
 		delete(value, "Hash")
@@ -312,13 +310,20 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 
 	data.Value = value
 	_, reply := o.Web.Methods[data.Method](data, c)
+	o.WriteJson(&reply, w)
+	return 
+}
+
+
+func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 	var b = make([]byte, 0)
-	if b, err = json.Marshal(reply); err != nil {
+	var err error
+	if b, err = json.Marshal(data); err != nil {
 		o.InternalErrorJson(w, err)
-		return
+		return err
 	}
 	w.Write(b)
-	return 
+	return nil
 }
 
 func (o *NKNOVH) Listen() {
