@@ -285,12 +285,9 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 	if i := FindStringInSlice(o.Web.MethodsReqAuth, data.Method); i != len(o.Web.MethodsReqAuth) {
 
 		if hash, ok = value["Hash"].(string); !ok {
-			//DEPRECATED AND WILL BE REMOVED
-			if hash, ok = value["hash"].(string); !ok {
-				res := o.Web.Response[253]
-				o.WriteJson(&res, w)
-				return
-			}
+			res := o.Web.Response[253]
+			o.WriteJson(&res, w)
+			return
 		}
 
 		o.updateUniqWatch(c)
