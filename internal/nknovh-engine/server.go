@@ -39,7 +39,7 @@ type WsPool struct {
 }
 
 type WsClients struct {
-	list []*CLIENT
+	list map[uint64]*CLIENT
 	mu sync.RWMutex
 }
 
@@ -177,12 +177,13 @@ func (o *NKNOVH) WsClientCreate(conn net.Conn) *CLIENT {
 	c := &CLIENT{HashId: -1, WsConnection: conn, ConnId: o.Web.WsPool.i}
 	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
 		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
-		o.Web.WsPool.Clients[c.HashId].list = append(o.Web.WsPool.Clients[c.HashId].list, c)
+		o.Web.WsPool.Clients[c.HashId].list = map[uint64]*CLIENT{}
+		o.Web.WsPool.Clients[c.HashId].list[o.Web.WsPool.i] = c
 		o.Web.WsPool.mu.Unlock()
 	} else {
 		o.Web.WsPool.mu.Unlock()
 		v.mu.Lock()
-		v.list = append(v.list, c)
+		v.list[o.Web.WsPool.i] = c
 		v.mu.Unlock()
 	}
 	t_x := time.Now().Sub(t).String()
@@ -203,56 +204,41 @@ func (o *NKNOVH) WsClientCreate(conn net.Conn) *CLIENT {
 
 func (o *NKNOVH) WsClientClose(c *CLIENT) {
 	t := time.Now()
-	key := c.HashId
 	c.WsConnection.Close()
-	c.Gc = true
 	o.WsMultiConnectDecrease(c.Ip)
-	o.WsClientGC(key)
+	o.WsClientGC(c)
 	t_x := time.Now().Sub(t).String()
 	o.log.Syslog("WsClientClose time: " + t_x, "debug")
 	return
 }
 
-func (o *NKNOVH) WsClientGC(key int) {
-	o.Web.WsPool.Clients[key].mu.Lock()
-	for i := 0; i < len(o.Web.WsPool.Clients[key].list); i++ {
-		if o.Web.WsPool.Clients[key].list[i].Gc {
-			o.Web.WsPool.Clients[key].list[i] = o.Web.WsPool.Clients[key].list[len(o.Web.WsPool.Clients[key].list)-1]
-  			o.Web.WsPool.Clients[key].list = o.Web.WsPool.Clients[key].list[:len(o.Web.WsPool.Clients[key].list)-1]
-		}
-	}
-	if len(o.Web.WsPool.Clients[key].list) == 0 {
+func (o *NKNOVH) WsClientGC(c *CLIENT) {
+	o.Web.WsPool.Clients[c.HashId].mu.Lock()
+	delete(o.Web.WsPool.Clients[c.HashId].list, c.ConnId)
+	if len(o.Web.WsPool.Clients[c.HashId].list) == 0 {
 		o.Web.WsPool.mu.Lock()
-		delete(o.Web.WsPool.Clients, key)
+		delete(o.Web.WsPool.Clients, c.HashId)
 		o.Web.WsPool.mu.Unlock()
 	} else {
-		o.Web.WsPool.Clients[key].mu.Unlock()
+		o.Web.WsPool.Clients[c.HashId].mu.Unlock()
 	}
+	return
 }
 
 func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
-	old := c.HashId
 	t := time.Now()
-	o.Web.WsPool.Clients[old].mu.Lock()
-	l := len(o.Web.WsPool.Clients[old].list)
-	for i := 0; i < l; i++ {
-		if o.Web.WsPool.Clients[old].list[i].ConnId == c.ConnId {
-			o.Web.WsPool.Clients[old].list[i] = o.Web.WsPool.Clients[old].list[len(o.Web.WsPool.Clients[old].list)-1]
-  			o.Web.WsPool.Clients[old].list = o.Web.WsPool.Clients[old].list[:len(o.Web.WsPool.Clients[old].list)-1]
-			break
-		} 
-	}
-	o.Web.WsPool.Clients[old].mu.Unlock()
+	o.WsClientGC(c)
 	c.HashId = hashId
 	o.Web.WsPool.mu.Lock()
 	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
 		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
-		o.Web.WsPool.Clients[c.HashId].list = append(o.Web.WsPool.Clients[c.HashId].list, c)
+		o.Web.WsPool.Clients[c.HashId].list = map[uint64]*CLIENT{}
+		o.Web.WsPool.Clients[c.HashId].list[o.Web.WsPool.i] = c
 		o.Web.WsPool.mu.Unlock()
 	} else {
 		o.Web.WsPool.mu.Unlock()
 		v.mu.Lock()
-		v.list = append(v.list, c)
+		v.list[o.Web.WsPool.i] = c
 		v.mu.Unlock()
 	}
 	t_x := time.Now().Sub(t).String()
