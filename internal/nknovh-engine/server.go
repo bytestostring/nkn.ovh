@@ -7,9 +7,13 @@ import (
 		"github.com/gobwas/ws/wsutil"
 		"github.com/julienschmidt/httprouter"
 		"fmt"
+		"sync"
+		"net"
 		"log"
 		"encoding/json"
 		"strconv"
+		"errors"
+		"time"
 		)
 
 
@@ -23,6 +27,20 @@ type Web struct {
 	Methods map[string]func(*WSQuery,*CLIENT) (error, WSReply)
 	MethodsReqAuth []string
 	MethodsReadOnly []string
+	WsPool *WsPool
+}
+
+type WsPool struct {
+	Clients map[int]*WsClients
+	ActiveIps map[string]int
+	i uint64
+	mu sync.RWMutex
+	mu_ips sync.RWMutex
+}
+
+type WsClients struct {
+	list []*CLIENT
+	mu sync.RWMutex
 }
 
 type WSQuery struct {
@@ -58,6 +76,9 @@ type CLIENT struct {
 	HashId int
 	Ip string
 	ReadOnly bool
+	ConnId uint64
+	Gc bool
+	WsConnection net.Conn
 }
 
 func (o *NKNOVH) RegisterMethods() {
@@ -131,7 +152,7 @@ func (o *NKNOVH) RegisterResponse() {
 	//Main errors
 	o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "Method variable is not passed or it has wrong format"}
 	o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
-
+	o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit is reached"}
 	return
 }
 
@@ -147,6 +168,123 @@ func (o *NKNOVH) InternalErrorJson(w http.ResponseWriter, errx error) {
 	return
 }
 
+
+func (o *NKNOVH) WsClientCreate(conn net.Conn) *CLIENT {
+	t := time.Now()
+
+	o.Web.WsPool.mu.Lock()
+	o.Web.WsPool.i++
+	c := &CLIENT{HashId: -1, WsConnection: conn, ConnId: o.Web.WsPool.i}
+	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
+		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
+		o.Web.WsPool.Clients[c.HashId].list = append(o.Web.WsPool.Clients[c.HashId].list, c)
+		o.Web.WsPool.mu.Unlock()
+	} else {
+		o.Web.WsPool.mu.Unlock()
+		v.mu.Lock()
+		v.list = append(v.list, c)
+		v.mu.Unlock()
+	}
+	t_x := time.Now().Sub(t).String()
+	o.log.Syslog("WsClientCreate time: " + t_x, "debug")
+	return c
+}
+
+func (o *NKNOVH) WsClientClose(c *CLIENT) {
+	t := time.Now()
+	key := c.HashId
+	c.WsConnection.Close()
+	c.Gc = true
+	o.WsMultiConnectDecrease(c.Ip)
+	o.WsClientGC(key)
+	t_x := time.Now().Sub(t).String()
+	o.log.Syslog("WsClientClose time: " + t_x, "debug")
+	return
+}
+
+func (o *NKNOVH) WsClientGC(key int) {
+	o.Web.WsPool.Clients[key].mu.Lock()
+	for i := 0; i < len(o.Web.WsPool.Clients[key].list); i++ {
+		if o.Web.WsPool.Clients[key].list[i].Gc {
+			o.Web.WsPool.Clients[key].list[i] = o.Web.WsPool.Clients[key].list[len(o.Web.WsPool.Clients[key].list)-1]
+  			o.Web.WsPool.Clients[key].list = o.Web.WsPool.Clients[key].list[:len(o.Web.WsPool.Clients[key].list)-1]
+		}
+	}
+	if len(o.Web.WsPool.Clients[key].list) == 0 {
+		o.Web.WsPool.mu.Lock()
+		delete(o.Web.WsPool.Clients, key)
+		o.Web.WsPool.mu.Unlock()
+	} else {
+		o.Web.WsPool.Clients[key].mu.Unlock()
+	}
+}
+
+func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
+	old := c.HashId
+	t := time.Now()
+	o.Web.WsPool.Clients[old].mu.Lock()
+	l := len(o.Web.WsPool.Clients[old].list)
+	for i := 0; i < l; i++ {
+		if o.Web.WsPool.Clients[old].list[i].ConnId == c.ConnId {
+			o.Web.WsPool.Clients[old].list[i] = o.Web.WsPool.Clients[old].list[len(o.Web.WsPool.Clients[old].list)-1]
+  			o.Web.WsPool.Clients[old].list = o.Web.WsPool.Clients[old].list[:len(o.Web.WsPool.Clients[old].list)-1]
+			break
+		} 
+	}
+	o.Web.WsPool.Clients[old].mu.Unlock()
+	c.HashId = hashId
+	o.Web.WsPool.mu.Lock()
+	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
+		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
+		o.Web.WsPool.Clients[c.HashId].list = append(o.Web.WsPool.Clients[c.HashId].list, c)
+		o.Web.WsPool.mu.Unlock()
+	} else {
+		o.Web.WsPool.mu.Unlock()
+		v.mu.Lock()
+		v.list = append(v.list, c)
+		v.mu.Unlock()
+	}
+	t_x := time.Now().Sub(t).String()
+	o.log.Syslog("WsClientUpdate time: " + t_x, "debug")
+	return
+}
+
+func (o *NKNOVH) WsRestrictMultiConnect(ip string) (error, WSReply) {
+	limit := 10
+	var ok bool
+	o.Web.WsPool.mu_ips.Lock()
+	defer o.Web.WsPool.mu_ips.Unlock()
+	if _, ok = o.Web.WsPool.ActiveIps[ip]; !ok {
+		o.Web.WsPool.ActiveIps[ip] = 1
+		return nil, WSReply{}
+	} else {
+		o.Web.WsPool.ActiveIps[ip] = o.Web.WsPool.ActiveIps[ip]+1
+		if o.Web.WsPool.ActiveIps[ip] > limit {
+			o.log.Syslog("Connections limit is reached from IP " + ip, "debug")
+			q := new(WSQuery)
+			_, wsreply := o.WsError(q, 1002)
+			return errors.New("Connections limit is reached"), wsreply
+		} else {
+			return nil, WSReply{}
+		}
+	}
+}
+
+func (o *NKNOVH) WsMultiConnectDecrease(ip string) {
+	var ok bool
+	o.Web.WsPool.mu_ips.Lock()
+	defer o.Web.WsPool.mu_ips.Unlock()
+	if _, ok = o.Web.WsPool.ActiveIps[ip]; !ok {
+		return
+	}
+	x := o.Web.WsPool.ActiveIps[ip] - 1
+	if x == 0 {
+		delete(o.Web.WsPool.ActiveIps, ip)
+		return
+	}
+	o.Web.WsPool.ActiveIps[ip] = x
+}
+
 func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	conn, _, _, err := ws.UpgradeHTTP(r, w)
 	if err != nil {
@@ -154,13 +292,20 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 		return
 	}
 	go func() {
-		defer conn.Close()
+		c := o.WsClientCreate(conn)
+		defer o.WsClientClose(c)
 		ip, err := o.getIp(o.conf.TrustedProxies, r)
 		if err != nil {
 			o.log.Syslog("getIp returned an error: " + err.Error(), "wshttp")
 			return
 		}
-		c := &CLIENT{HashId: -1, Ip: ip}
+		c.Ip = ip
+		if err, wsreply := o.WsRestrictMultiConnect(ip); err != nil {
+			if b, err := json.Marshal(wsreply); err == nil {
+				wsutil.WriteServerMessage(conn, 0x1, b)
+			}
+			return
+		}
 		for {
 			msg, op, err := wsutil.ReadClientData(conn)
 			if err != nil {
@@ -191,7 +336,6 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 			}
 
 			o.updateUniqWatch(c)
-			
 			_, res := o.Web.Methods[q.Method](q, c)
 			if b, err := json.Marshal(res); err == nil {
 				wsutil.WriteServerMessage(conn, op, b)
@@ -323,10 +467,16 @@ func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 	return nil
 }
 
+
+
 func (o *NKNOVH) Listen() {
 	x := templater.NewTemplater("templates")
 	wh := &WebHelper{temp: x}
 	o.Web = &Web{Response: map[int]WSReply{}, Helper: wh}
+	o.Web.WsPool = new(WsPool)
+	o.Web.WsPool.Clients = map[int]*WsClients{}
+	o.Web.WsPool.ActiveIps = map[string]int{}
+
 	o.RegisterResponse()
 	o.RegisterMethods()
 

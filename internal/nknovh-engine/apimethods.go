@@ -637,7 +637,7 @@ func (o *NKNOVH) apiAuth(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 			return o.WsError(q, 1)
 		break
 		}
-	c.HashId = id
+	o.WsClientUpdate(c, id)
 	value := map[string]interface{}{}
 	value["Hash"] = hash
 	return err, WSReply{Method: q.Method, Code: 0, Value: value,}

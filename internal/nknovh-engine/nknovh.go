@@ -440,30 +440,10 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 	var http_client *http.Client
 	var threads *chan struct {}
 
-	if dirty == true {
+	if dirty {
 		nodes_list = &o.NodeInfo.d_nodes
 		http_client = o.http.DirtyClient
 		threads = &o.threads.Dirty
-	} else {
-		nodes_list = &o.NodeInfo.m_nodes
-		http_client = o.http.MainClient
-		threads = &o.threads.Main
-	}
-
-
-	if !dirty {
-		for k, v := range *nodes_list {
-
-			dbnode := new(DBNode)
-			dbnode.Ip = k
-			dbnode.Ids = v
-			dbnode.Dirty = dirty
-			r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
-			wg.Add(1)
-			*threads <- struct{}{}
-			go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
-		}
-	} else {
 		l := len(o.NodeInfo.dirty_keys)
 		for i := 0; i < l; i++ {
 			dbnode := new(DBNode)
@@ -474,6 +454,20 @@ func (o *NKNOVH) fetchNodesInfo(dirty bool) error {
 			wg.Add(1)
 			*threads <- struct{}{}
 			go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)	
+		}
+	} else {
+		nodes_list = &o.NodeInfo.m_nodes
+		http_client = o.http.MainClient
+		threads = &o.threads.Main
+		for k, v := range *nodes_list {
+			dbnode := new(DBNode)
+			dbnode.Ip = k
+			dbnode.Ids = v
+			dbnode.Dirty = dirty
+			r := &JsonRPCConf{Ip:k, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: http_client,}
+			wg.Add(1)
+			*threads <- struct{}{}
+			go o.getInfo(&wg, r, "UpdateNode", threads, dbnode)
 		}
 	}
 	wg.Wait()
