@@ -187,6 +187,17 @@ func (o *NKNOVH) WsClientCreate(conn net.Conn) *CLIENT {
 	}
 	t_x := time.Now().Sub(t).String()
 	o.log.Syslog("WsClientCreate time: " + t_x, "debug")
+
+	//ONLY FOR DEBUG MODE
+	cnt := 0
+	o.Web.WsPool.mu.RLock()
+	for i, _ := range o.Web.WsPool.Clients {
+		o.Web.WsPool.Clients[i].mu.RLock()
+		cnt += len(o.Web.WsPool.Clients[i].list)
+		o.Web.WsPool.Clients[i].mu.RUnlock()
+	}
+	o.Web.WsPool.mu.RUnlock()
+	o.log.Syslog("Active ws connections: " + strconv.Itoa(cnt), "debug")
 	return c
 }
 
