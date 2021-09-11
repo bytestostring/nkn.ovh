@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"strings"
 	"strconv"
+	"github.com/fvbommel/sortorder"
 )
 
 	//Some html templates
@@ -668,11 +669,11 @@ func (c *CLIENT) SortAndParseNodes() {
 		case "t_name":
 			if c.Sort_type == "ASC" {
 				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Name > c.Nodes.Value.List[j].Name 
+					return sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
 				})
 			} else {
 				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-				return c.Nodes.Value.List[i].Name < c.Nodes.Value.List[j].Name 
+					return !sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
 				})
 			}
 		break
