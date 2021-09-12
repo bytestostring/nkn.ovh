@@ -248,6 +248,13 @@ func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 	}
 	t_x := time.Now().Sub(t).String()
 	o.log.Syslog("WsClientUpdate time: " + t_x, "debug")
+	/*
+	for x, _ := range o.Web.WsPool.Clients {
+			for i, _ := range o.Web.WsPool.Clients[x].list {
+				fmt.Println("HashId: ", x, " Context: ", o.Web.WsPool.Clients[x].list[i])
+			}
+	}
+	*/
 	return
 }
 

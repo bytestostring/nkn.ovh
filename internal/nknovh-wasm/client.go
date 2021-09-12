@@ -1469,6 +1469,7 @@ func (c *CLIENT) Init() {
 
 	c.apiMethods = map[string]func(*WSReply) interface{}{}
 	c.apiMethods["auth"] = c.apiAuth
+	c.apiMethods["logout"] = c.apiLogout
 	c.apiMethods["genid"] = c.apiGenId
 	c.apiMethods["getfullstack"] = c.apiFullstack
 	c.apiMethods["getmynodes"] = c.apiMyNodes

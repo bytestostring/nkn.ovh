@@ -113,6 +113,32 @@ func (c *CLIENT) apiFullstack(data *WSReply) interface{} {
 	return true
 }
 
+func (c *CLIENT) apiLogout(data *WSReply) interface{} {
+	if err, _ := c.W.LocalStorage("clear"); err != nil {
+		s := err.Error()
+		c.GenErr(s, "default", -1)
+		return s
+	}
+	c.mux.AutoUpdater.Lock()
+	if c.AutoUpdaterIsStarted {
+		c.AutoUpdaterStopCh <- true
+	}
+	c.mux.AutoUpdater.Unlock()
+	c.mux.StartView.Lock()
+	defer c.mux.StartView.Unlock()
+	history := js.Global().Get("history")
+	history.Call("pushState", nil, nil, "/")
+	c.NodesSummary = map[string]map[string]float64{}
+	c.Version = ""
+	c.Nodes = nil
+	c.Netstatus = nil
+	c.Daemon = nil
+	c.Wallets = nil
+	c.Prices = nil
+	go c.Run()
+	return nil
+}
+
 func (c *CLIENT) apiAddNodes(data *WSReply) interface{} {
 	doc := js.Global().Get("document")
 	button := doc.Call("getElementById", "addNodeButton")
