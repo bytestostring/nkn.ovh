@@ -233,14 +233,25 @@ func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 		return
 	}
 	o.WsClientGC(c)
+
+	debugf := func() {
+			for x, _ := range o.Web.WsPool.Clients {
+				for i, _ := range o.Web.WsPool.Clients[x].list {
+					s := fmt.Sprintf("HashId: %v >> Context: %v", x, o.Web.WsPool.Clients[x].list[i])
+					o.log.Syslog(s, "debug")
+				}
+			}
+	}
 	c.HashId = hashId
 	o.Web.WsPool.mu.Lock()
 	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
 		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
 		o.Web.WsPool.Clients[c.HashId].list = map[uint64]*CLIENT{}
 		o.Web.WsPool.Clients[c.HashId].list[o.Web.WsPool.i] = c
+		debugf()
 		o.Web.WsPool.mu.Unlock()
 	} else {
+		debugf()
 		o.Web.WsPool.mu.Unlock()
 		v.mu.Lock()
 		v.list[o.Web.WsPool.i] = c
@@ -248,13 +259,7 @@ func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 	}
 	t_x := time.Now().Sub(t).String()
 	o.log.Syslog("WsClientUpdate time: " + t_x, "debug")
-	/*
-	for x, _ := range o.Web.WsPool.Clients {
-			for i, _ := range o.Web.WsPool.Clients[x].list {
-				fmt.Println("HashId: ", x, " Context: ", o.Web.WsPool.Clients[x].list[i])
-			}
-	}
-	*/
+
 	return
 }
 
