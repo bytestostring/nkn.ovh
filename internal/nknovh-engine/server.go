@@ -77,17 +77,18 @@ type CLIENT struct {
 	Ip string
 	ReadOnly bool
 	ConnId uint64
-	Gc bool
+	NotWs bool
 	WsConnection net.Conn
 }
 
 func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods = map[string]func(*WSQuery, *CLIENT) (error, WSReply){}
-	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings"}
+	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings", "logout"}
 
 	o.Web.MethodsReadOnly = []string{"getfullstack", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails"}
 
 	o.Web.Methods["auth"] = o.apiAuth
+	o.Web.Methods["logout"] = o.apiLogout
 	o.Web.Methods["genid"] = o.apiGenId
 	o.Web.Methods["getfullstack"] = o.apiFullstack 
 	o.Web.Methods["addnodes"] = o.apiAddNodes
@@ -227,6 +228,10 @@ func (o *NKNOVH) WsClientGC(c *CLIENT) {
 
 func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 	t := time.Now()
+	if c.NotWs {
+		c.HashId = hashId
+		return
+	}
 	o.WsClientGC(c)
 	c.HashId = hashId
 	o.Web.WsPool.mu.Lock()
@@ -382,7 +387,7 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 		return
 	}
 
-	c := &CLIENT{HashId: -1, Ip: ip}
+	c := &CLIENT{HashId: -1, Ip: ip, NotWs: true,}
 
 	var hash string
 	var ok bool
