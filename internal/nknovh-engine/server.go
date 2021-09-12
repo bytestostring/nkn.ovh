@@ -315,13 +315,11 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 		}
 		c.Ip = ip
 		if err, wsreply := o.WsRestrictMultiConnect(ip); err != nil {
-			if b, err := json.Marshal(wsreply); err == nil {
-				wsutil.WriteServerMessage(conn, 0x1, b)
-			}
+			o.WriteJsonWs(&wsreply, c)
 			return
 		}
 		for {
-			msg, op, err := wsutil.ReadClientData(conn)
+			msg, _, err := wsutil.ReadClientData(conn)
 			if err != nil {
 				o.log.Syslog(err.Error(), "wshttp")
 				return
@@ -341,9 +339,8 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 					//Authorization needed
 					res := o.Web.Response[253]
 					res.Method = q.Method
-					if b, err := json.Marshal(res); err == nil {
-						wsutil.WriteServerMessage(conn, op, b)
-						continue	
+					if err := o.WriteJsonWs(&res, c); err == nil {
+						continue
 					}
 					return
 				}
@@ -351,8 +348,7 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 			o.updateUniqWatch(c)
 			_, res := o.Web.Methods[q.Method](q, c)
-			if b, err := json.Marshal(res); err == nil {
-				wsutil.WriteServerMessage(conn, op, b)
+			if err := o.WriteJsonWs(&res, c); err == nil {
 				continue
 			}
 			return
@@ -482,6 +478,17 @@ func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 }
 
 
+func (o *NKNOVH) WriteJsonWs(data *WSReply, c *CLIENT) error {
+	var b = make([]byte, 0)
+	var err error
+	if b, err = json.Marshal(data); err == nil {
+		if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, b); err != nil {
+			return err
+		}
+		return nil
+	}
+	return err
+}
 
 func (o *NKNOVH) Listen() {
 	x := templater.NewTemplater("templates")
