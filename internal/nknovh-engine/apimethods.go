@@ -628,11 +628,7 @@ func (o *NKNOVH) apiAuth(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	var ok bool
 	hash, ok = q.Value["Hash"].(string)
 	if !ok {
-		//DEPRECATED AND WILL BE REMOVED
-		hash, ok = q.Value["hash"].(string)
-		if !ok {
-			return o.WsError(q, 5)
-		}
+		return o.WsError(q, 5)
 	}
 
 	if len(hash) != 64 {
