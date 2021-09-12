@@ -613,8 +613,11 @@ func (o *NKNOVH) apiGenId(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 // WebSocket only
 
 func (o *NKNOVH) apiLogout(q *WSQuery, c *CLIENT) (err error, r WSReply) {
-	o.WsClientUpdate(c, -1)
 	r = WSReply{Method: q.Method, Code: 0,}
+	if c.NotWs {
+		return
+	}
+	o.WsClientUpdate(c, -1)
 	return
 }
 
