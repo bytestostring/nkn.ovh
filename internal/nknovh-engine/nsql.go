@@ -65,6 +65,7 @@ func (o *Mysql) prepare() error {
 			"WebGetMyNodes": "SELECT id,name,ip FROM nodes WHERE hash_id = ?",
 			"WebInsertNode": "INSERT IGNORE INTO nodes(hash_id,name,ip) VALUES(?,?,?)",
 			"WebCountNodesByHash": "SELECT count(id) as cnt FROM nodes WHERE hash_id = ?",
+			"WebGetNodeIdByIp": "SELECT id FROM nodes WHERE hash_id = ? && ip = ?",
 			"WebRmNodes": "DELETE FROM nodes WHERE hash_id = ? && id = ?",
 			"WebGetMyWallets": "SELECT id, nkn_wallet, balance FROM wallets WHERE hash_id = ? ORDER BY id ASC",
 			"WebGetWalletByAddress": "SELECT id FROM wallets WHERE hash_id = ? AND nkn_wallet = ?",

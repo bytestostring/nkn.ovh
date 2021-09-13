@@ -1479,6 +1479,7 @@ func (c *CLIENT) Init() {
 	c.apiMethods["getdaemon"] = c.apiDaemon
 	c.apiMethods["addnodes"] = c.apiAddNodes
 	c.apiMethods["rmnodes"] = c.apiRmNodes
+	c.apiMethods["rmnodesbyip"] = c.apiRmNodes
 	c.apiMethods["getlanguage"] = c.apiLanguage
 	c.apiMethods["savemysettings"] = c.apiSaveSettings
 	c.apiMethods["other"] = c.apiOther

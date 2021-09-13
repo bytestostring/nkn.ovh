@@ -326,6 +326,92 @@ func (o *NKNOVH) apiSaveSettings(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	return nil, WSReply{Method: q.Method, Code: 0, Value: m,}
 }
 
+func (o *NKNOVH) apiRmNodesByIp(q *WSQuery, c *CLIENT) (err error, r WSReply) {
+	var nodes []string
+	var ok bool
+	var nodes_s string
+	var nodes_s_ok bool
+	var raw_nodes_s []string
+	raw_nodes := make([]interface{}, 0)
+	if raw_nodes, ok = q.Value["NodesIp"].([]interface{}); !ok {
+		if nodes_s, ok = q.Value["NodesIp"].(string); !ok {
+			return o.WsError(q, 27)
+		}
+		raw_nodes_s = strings.Split(nodes_s, ",")
+		nodes_s_ok = true
+	}
+
+	var raw_node string
+	if !nodes_s_ok {
+		for i, _ := range raw_nodes {
+			if raw_node, ok = raw_nodes[i].(string); !ok {
+				return o.WsError(q, 27)
+			}
+			raw_node  = strings.TrimSpace(raw_node)
+			if ok = o.Validator.IsIPv4Valid(raw_node); !ok {
+				return o.WsError(q, 27)
+			}
+			nodes = append(nodes, raw_node)
+		}
+	} else {
+		for i, _ := range raw_nodes_s {
+			raw_node = strings.TrimSpace(raw_nodes_s[i])
+			if ok = o.Validator.IsIPv4Valid(raw_node); !ok {
+				return o.WsError(q, 27)
+			}
+			nodes = append(nodes, raw_node)
+		}
+	}
+
+	if len(nodes) < 1 {
+		return o.WsError(q, 27)
+	}
+
+	tx, err := o.sql.db["main"].Begin()
+	if err != nil {
+		o.log.Syslog("Cannot create new Tx: " + err.Error(), "sql")
+		return o.WsError(q, 1)
+	}
+	defer tx.Rollback()
+	var row_id uint64
+	rows_id := make([]uint64, 0, len(nodes))
+	for i,_ := range nodes {
+		row := o.sql.stmt["main"]["WebGetNodeIdByIp"].QueryRow(c.HashId, nodes[i])
+		err := row.Scan(&row_id)
+		switch {
+			case err == sql.ErrNoRows:
+				return o.WsError(q, 28)
+			case err != nil:
+				return o.WsError(q, 1)
+			default:
+				rows_id = append(rows_id, row_id)
+				res, err := tx.Stmt(o.sql.stmt["main"]["WebRmNodes"]).Exec(c.HashId, row_id)
+				if err != nil {
+					o.log.Syslog("Cannot execute Tx stmt query: " + err.Error(), "sql")
+					return o.WsError(q, 1)
+				}
+				if rows_affected, err := res.RowsAffected(); rows_affected == 0 && err == nil {
+					o.log.Syslog("No rows affected by removing node", "sql")
+					return o.WsError(q, 28)
+				} else if err != nil {
+					o.log.Syslog("Cannot get RowsAffected: " + err.Error(), "sql")
+					return o.WsError(q, 1)
+				}
+		}
+
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		o.log.Syslog("Cannot Commit Tx Query: " + err.Error(), "sql")
+		return o.WsError(q, 1)
+	}
+
+	m := map[string]interface{}{}
+	m["Data"] = "Nodes removed successfully"
+	m["NodesId"] = rows_id
+	return nil, WSReply{Method: q.Method, Code: 0, Value: m, }
+}
 
 func (o *NKNOVH) apiRmNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	var nodes []int
@@ -333,19 +419,18 @@ func (o *NKNOVH) apiRmNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	var node_id int
 	var raw_node float64
 	raw_nodes := make([]interface{}, 0)
-
+	var node_id_string string
 	if raw_nodes, ok = q.Value["NodesId"].([]interface{}); !ok {
-		if node_id_string, ok := q.Value["NodesId"].(string); !ok {
+		if node_id_string, ok = q.Value["NodesId"].(string); !ok {
 			return o.WsError(q, 15)
-		} else {
-			raw_nodes_s := strings.Split(node_id_string, ",")
-			for i, _ := range raw_nodes_s {
-				x, err := strconv.Atoi(strings.TrimSpace(raw_nodes_s[i]))
-				if err != nil {
-					return o.WsError(q, 15)
-				}
-				raw_nodes = append(raw_nodes, x)
+		}
+		raw_nodes_s := strings.Split(node_id_string, ",")
+		for i, _ := range raw_nodes_s {
+			x, err := strconv.Atoi(strings.TrimSpace(raw_nodes_s[i]))
+			if err != nil {
+				return o.WsError(q, 15)
 			}
+			raw_nodes = append(raw_nodes, x)
 		}
 	}
 	for i, _ := range raw_nodes {

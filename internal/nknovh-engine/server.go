@@ -84,19 +84,20 @@ type CLIENT struct {
 
 func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods = map[string]func(*WSQuery, *CLIENT) (error, WSReply){}
-	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings", "logout"}
+	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "rmnodesbyip", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings", "logout"}
 	o.Web.MethodsReadOnly = []string{"getfullstack", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails"}
-	o.Web.MethodsToAll = []string{"addnodes", "rmnodes", "savemysettings"}
+	o.Web.MethodsToAll = []string{"addnodes", "rmnodes", "rmnodesbyip", "savemysettings"}
 	o.Web.Methods["auth"] = o.apiAuth
 	o.Web.Methods["logout"] = o.apiLogout
 	o.Web.Methods["genid"] = o.apiGenId
-	o.Web.Methods["getfullstack"] = o.apiFullstack 
+	o.Web.Methods["getfullstack"] = o.apiFullstack
 	o.Web.Methods["addnodes"] = o.apiAddNodes
 	o.Web.Methods["getmywallets"] = o.apiMyWallets
 	o.Web.Methods["getprices"] = o.apiPrices
 	o.Web.Methods["getmynodes"] = o.apiMyNodes
 	o.Web.Methods["getnetstatus"] = o.apiNetstatus
 	o.Web.Methods["rmnodes"] = o.apiRmNodes
+	o.Web.Methods["rmnodesbyip"] = o.apiRmNodesByIp
 	o.Web.Methods["getdaemon"] = o.apiDaemon
 	o.Web.Methods["getlanguage"] = o .apiLanguage
 	o.Web.Methods["savemysettings"] = o.apiSaveSettings
@@ -123,7 +124,7 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[15] = WSReply{Code: 15, Error: true, ErrMessage: "Wrong data of NodesId passed"}
 	o.Web.Response[16] = WSReply{Code: 16, Error: true, ErrMessage: "Wallets overflow"}
 	o.Web.Response[17] = WSReply{Code: 17, Error: true, ErrMessage: "One or more of the passed wallets are not in the correct format"}
-	o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of passed nodes are not found. No changes."}
+	o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of the passed nodes are not found. No changes."}
 
 	//Link to apiGetNodeDetails
 	o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
@@ -136,6 +137,11 @@ func (o *NKNOVH) RegisterResponse() {
 	//Link to apiGetNodeIpByPublicKey
 	o.Web.Response[25] = WSReply{Code: 25, Error: true, ErrMessage: "PublicKey is not set"}
 	o.Web.Response[26] = WSReply{Code: 26, Error: true, ErrMessage: "Wrong PublicKey passed"}
+
+	//Link to apiRmNodesByIp
+	o.Web.Response[27] = WSReply{Code: 27, Error: true, ErrMessage: "Wrong data of NodesIp passed"}
+	o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes are not found. No changes."}
+
 
 	o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 	o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
@@ -494,6 +500,10 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 		data.Value = value
 	}
 	_, reply := o.Web.Methods[data.Method](data, c)
+	if i := FindStringInSlice(o.Web.MethodsToAll, data.Method); i != len(o.Web.MethodsToAll) {
+		o.WsSendByHashId(&reply, c.HashId)
+	} 
+	
 	o.WriteJson(&reply, w)
 	return 
 }

@@ -12,6 +12,7 @@ func buildValidator() *Validator {
 	v := new(Validator)
 	v.Expr = map[string]*regexp.Regexp{}
 	v.Expr["Addr"] = regexp.MustCompile(`^tcp://(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}:([0-9]){0,5}$`)
+	v.Expr["Ipv4"] = regexp.MustCompile(`^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$`)
 	v.Expr["Id"] = regexp.MustCompile(`^([A-Za-z0-9]{64})$`)
 	v.Expr["PublicKey"] = regexp.MustCompile(`^([A-Za-z0-9]{64})$`)
 	v.Expr["SyncState"] = regexp.MustCompile(`^WAIT_FOR_SYNCING|SYNC_STARTED|SYNC_FINISHED|PERSIST_FINISHED$`)
@@ -51,6 +52,13 @@ func (v *Validator) IsNodeStateValid(s *NodeState) bool {
 		return false
 	}
 	if b = v.Expr["Version"].MatchString(s.Result.Version); !b {
+		return false
+	}
+	return true
+}
+
+func (v *Validator) IsIPv4Valid(s string) bool {
+	if b := v.Expr["Ipv4"].MatchString(s); !b {
 		return false
 	}
 	return true
