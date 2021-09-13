@@ -39,6 +39,26 @@ func (o *NKNOVH) WsError(q *WSQuery, code int) (err error, r WSReply) {
 }
 
 
+func (o *NKNOVH) WsSendByHashId(r *WSReply, hashId int) error {
+	o.Web.WsPool.mu.RLock()
+	defer o.Web.WsPool.mu.RUnlock()
+	if _, ok := o.Web.WsPool.Clients[hashId]; !ok {
+		return nil
+	}
+	o.Web.WsPool.Clients[hashId].mu.RLock()
+	defer o.Web.WsPool.Clients[hashId].mu.RUnlock()
+	for connId, _ := range o.Web.WsPool.Clients[hashId].list {
+		c := o.Web.WsPool.Clients[hashId].list[connId]
+		if c.WsConnection == nil {
+			continue
+		}
+		if err := o.WriteJsonWs(r, c); err != nil {
+			o.log.Syslog(err.Error(), "wshttp")
+		}
+	}
+	return nil
+}
+
 func (o *NKNOVH) apiGetNodeIpByPublicKey(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	var raw_pubkey string
 	var ok bool

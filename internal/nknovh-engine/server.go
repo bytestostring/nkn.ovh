@@ -27,6 +27,7 @@ type Web struct {
 	Methods map[string]func(*WSQuery,*CLIENT) (error, WSReply)
 	MethodsReqAuth []string
 	MethodsReadOnly []string
+	MethodsToAll []string
 	WsPool *WsPool
 }
 
@@ -84,9 +85,8 @@ type CLIENT struct {
 func (o *NKNOVH) RegisterMethods() {
 	o.Web.Methods = map[string]func(*WSQuery, *CLIENT) (error, WSReply){}
 	o.Web.MethodsReqAuth = []string{"getfullstack", "addnodes", "rmnodes", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails", "savemysettings", "logout"}
-
 	o.Web.MethodsReadOnly = []string{"getfullstack", "getmynodes", "getnetstatus", "getmywallets", "getprices", "getnodedetails"}
-
+	o.Web.MethodsToAll = []string{"addnodes", "rmnodes", "savemysettings"}
 	o.Web.Methods["auth"] = o.apiAuth
 	o.Web.Methods["logout"] = o.apiLogout
 	o.Web.Methods["genid"] = o.apiGenId
@@ -206,7 +206,9 @@ func (o *NKNOVH) WsClientCreate(conn net.Conn) *CLIENT {
 
 func (o *NKNOVH) WsClientClose(c *CLIENT) {
 	t := time.Now()
+	o.Web.WsPool.Clients[c.HashId].mu.Lock()
 	c.WsConnection.Close()
+	o.Web.WsPool.Clients[c.HashId].mu.Unlock()
 	o.WsMultiConnectDecrease(c.Ip)
 	o.WsClientGC(c)
 	t_x := time.Now().Sub(t).String()
@@ -350,8 +352,14 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 
 			o.updateUniqWatch(c)
 			_, res := o.Web.Methods[q.Method](q, c)
-			if err := o.WriteJsonWs(&res, c); err == nil {
-				continue
+			if i := FindStringInSlice(o.Web.MethodsToAll, q.Method); i != len(o.Web.MethodsToAll) {
+				if err = o.WsSendByHashId(&res, c.HashId); err == nil {
+					continue
+				}
+			} else {
+				if err := o.WriteJsonWs(&res, c); err == nil {
+					continue
+				}
 			}
 			return
 		}
