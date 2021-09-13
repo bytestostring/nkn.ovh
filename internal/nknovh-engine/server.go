@@ -154,6 +154,7 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "Method variable is not passed or it has wrong format"}
 	o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
 	o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit is reached"}
+	o.Web.Response[1003] = WSReply{Code: 1003, Error: true, ErrMessage: "Passed JSON is incorrect"}
 	return
 }
 
@@ -394,8 +395,8 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 		o.log.Syslog("getIp returned an error: " + err.Error(), "http")
 		return
 	}
-
 	c := &CLIENT{HashId: -1, Ip: ip, NotWs: true,}
+	o.log.Syslog("POST Request from " + c.Ip, "http")
 
 	var hash string
 	var ok bool
@@ -405,20 +406,19 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 	// application/x-www-form-urlencoded
 	err = r.ParseForm()
 	if err != nil {
-		panic(err)
 		return
 	}
 	for key, val := range r.Form {
 		value[key] = val[0]
 	}
 
-	if x := params.ByName("method"); x != "" {
-		if _, ok = o.Web.Methods[x]; !ok {
-			_, wsreply := o.WsError(data, 1001)
+	if len(value) == 0 {
+		err = json.NewDecoder(r.Body).Decode(data)
+		if err != nil {
+			_, wsreply := o.WsError(data, 1003)
 			o.WriteJson(&wsreply, w)
 			return
 		}
-		data.Method = x
 	} else {
 		if val, ok := value["Method"].(string); ok {
 			if _, ok = o.Web.Methods[val]; !ok {
@@ -434,14 +434,15 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 			return
 		}
 	}
-	o.log.Syslog("POST Request from " + c.Ip, "http")
+
 	//Auth
 	if i := FindStringInSlice(o.Web.MethodsReqAuth, data.Method); i != len(o.Web.MethodsReqAuth) {
-
 		if hash, ok = value["Hash"].(string); !ok {
-			res := o.Web.Response[253]
-			o.WriteJson(&res, w)
-			return
+			if hash, ok = data.Value["Hash"].(string); !ok {
+				res := o.Web.Response[253]
+				o.WriteJson(&res, w)
+				return
+			}
 		}
 
 		o.updateUniqWatch(c)
@@ -456,10 +457,13 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 			o.WriteJson(&reply, w)
 			return
 		}
-		delete(value, "Hash")
+		if _, ok = value["Hash"]; ok {
+			delete(value, "Hash")
+		}
 	}
-
-	data.Value = value
+	if len(value) > 0 {
+		data.Value = value
+	}
 	_, reply := o.Web.Methods[data.Method](data, c)
 	o.WriteJson(&reply, w)
 	return 
