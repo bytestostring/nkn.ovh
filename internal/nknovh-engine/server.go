@@ -248,14 +248,14 @@ func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 	if v, ok := o.Web.WsPool.Clients[c.HashId]; !ok {
 		o.Web.WsPool.Clients[c.HashId] = new(WsClients)
 		o.Web.WsPool.Clients[c.HashId].list = map[uint64]*CLIENT{}
-		o.Web.WsPool.Clients[c.HashId].list[o.Web.WsPool.i] = c
+		o.Web.WsPool.Clients[c.HashId].list[c.ConnId] = c
 		debugf()
 		o.Web.WsPool.mu.Unlock()
 	} else {
 		debugf()
 		o.Web.WsPool.mu.Unlock()
 		v.mu.Lock()
-		v.list[o.Web.WsPool.i] = c
+		v.list[c.ConnId] = c
 		v.mu.Unlock()
 	}
 	t_x := time.Now().Sub(t).String()
