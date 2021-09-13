@@ -420,7 +420,14 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 			return
 		}
 	} else {
-		if val, ok := value["Method"].(string); ok {
+		if x := params.ByName("method"); x != "" {
+			if _, ok = o.Web.Methods[x]; !ok {
+				_, wsreply := o.WsError(data, 1001)
+				o.WriteJson(&wsreply, w)
+					return
+			}
+			data.Method = x
+		} else if val, ok := value["Method"].(string); ok {
 			if _, ok = o.Web.Methods[val]; !ok {
 				_, wsreply := o.WsError(data, 1001)
 				o.WriteJson(&wsreply, w)
