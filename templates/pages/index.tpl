@@ -81,8 +81,8 @@
 
 <div id="jWST">
 <h2 style="text-align: center; margin: 7px;">{{ .LANG.WalletTracker.title }}</h2>
-<div id="user_wallets">
 <div class="wallets_nf" id="wallets_nf">{{ .LANG.WalletTracker.wallets_nf }}</div>
+<div id="user_wallets">
 </div>
 </div>
 

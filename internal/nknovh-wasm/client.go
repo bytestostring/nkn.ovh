@@ -216,11 +216,18 @@ func (c *CLIENT) walletsInfoUpdate() {
 	if c.Wallets == nil {
 		return
 	}
+	doc := js.Global().Get("document")
+	user_wallets := doc.Call("getElementById", "user_wallets")
 	var n = len(c.Wallets.Value.Wallets)
 	if n < 1 {
-		c.W.ShowById("wallets_nf")
+		if user_wallets.Truthy() {
+			user_wallets.Set("innerHTML", "")
+			c.W.ShowById("wallets_nf")
+		}
 		return
 	}
+	c.W.HideById("wallets_nf")
+
 	var wallets string
 	var wclass string
 	var usd_val float64
@@ -239,8 +246,6 @@ func (c *CLIENT) walletsInfoUpdate() {
 			wallets += fmt.Sprintf(wallet_div, wclass, c.Wallets.Value.Wallets[i].Id, c.LANG.WalletTracker["walletname_label"], i+1, c.Wallets.Value.Wallets[i].NknWallet, s)
 		}
 	}
-	doc := js.Global().Get("document")
-	user_wallets := doc.Call("getElementById", "user_wallets")
 	if user_wallets.Truthy() {
 		user_wallets.Set("innerHTML", wallets)
 	}
