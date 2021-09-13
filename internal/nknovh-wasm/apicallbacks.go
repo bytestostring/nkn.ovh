@@ -60,6 +60,13 @@ func (c *CLIENT) apiGenId(data *WSReply) interface{} {
 	return true
 }
 
+func (c *CLIENT) apiOther(data *WSReply) interface{} {
+	if data.Code == 1002 {
+		js.Global().Call("alert", "WebSocket connections limit is reached.\nClose the other windows of the site and try again.")
+	}
+	return true
+}
+
 func (c *CLIENT) apiAuth(data *WSReply) interface{} {
 	if data.Error  {
 		if c.Hash != "" {

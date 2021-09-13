@@ -1481,6 +1481,7 @@ func (c *CLIENT) Init() {
 	c.apiMethods["rmnodes"] = c.apiRmNodes
 	c.apiMethods["getlanguage"] = c.apiLanguage
 	c.apiMethods["savemysettings"] = c.apiSaveSettings
+	c.apiMethods["other"] = c.apiOther
 	c.RegisterEvents()
 	go c.AutoUpdater()
 }

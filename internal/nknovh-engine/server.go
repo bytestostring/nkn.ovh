@@ -277,6 +277,7 @@ func (o *NKNOVH) WsRestrictMultiConnect(ip string) (error, WSReply) {
 		if o.Web.WsPool.ActiveIps[ip] > limit {
 			o.log.Syslog("Connections limit is reached from IP " + ip, "debug")
 			q := new(WSQuery)
+			q.Method = "other"
 			_, wsreply := o.WsError(q, 1002)
 			return errors.New("Connections limit is reached"), wsreply
 		} else {
