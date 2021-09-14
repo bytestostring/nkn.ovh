@@ -483,11 +483,11 @@ func (o *NKNOVH) isOutOfNetwork(dbnode *DBNode, node *NodeState) (error, bool) {
 	var last_height float64
 	var average_blockTime float64
 	var ok bool
-	var correction uint64 = 120
+	var correction uint64 = 300
 	var diff_timestamp uint64
 	var min_block_difference float64 = 7
 
-	if node.Result.Uptime < 300 {
+	if node.Result.Uptime < 1200 {
 		return nil, false
 	}
 	
