@@ -104,3 +104,10 @@ mysql -uroot -p nknovh < sqlupgrade/from-1.1.0-to-1.1.0-dirty-4.sql
 # Or if you are using the systemctl script
 systemctl start nknovh
 ```
+
+## Donation
+
+If you want to help the project the project:  
+
+- Ethereum: [0xD5305428401C9295401c89ff14CB8f6588A34F20](https://etherscan.io/address/0xD5305428401C9295401c89ff14CB8f6588A34F20)
+- NKN: [NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE](https://explorer.nkn.org/detail/address/NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE/1)
