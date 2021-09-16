@@ -3,7 +3,7 @@ nkn.ovh - Open source monitoring for the NKN nodes
 
 ## API
 
-[Documentation](blob/v1.1/API.md)
+[Documentation](../blob/v1.1/API.md)
 
 ________
 
