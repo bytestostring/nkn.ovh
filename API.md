@@ -484,7 +484,7 @@ https://nkn.ovh/api
 The **List** key in the returned result is an array of node objects.
 
 Note!  
-- If you have no nodes added in your account, the server returns a code 3.
+- If you have no nodes added in your account, the server returns the code 3.
 - The **RelayMessageCount** key can contain a big unsigned integer value, so if you use the API to program in a language with strict types, use uint64 type while decoding the value.  
 - NKNOVH uses transparent replacement of the **SyncState** key. The key's value may not match an actual value returned by a node. 
 	
@@ -633,7 +633,7 @@ https://nkn.ovh/api
 ```
 
 - The **Wallets** key contains **an array of objects**.
-- If you have no wallets in your account, the server returns a code 3.
+- If you have no wallets in your account, the server returns the code 3.
 
 </details>
 
@@ -696,7 +696,7 @@ https://nkn.ovh/api
 
 ______
 
-The method serves to get an information about the NKNOVH programm.
+The method serves to get information about the NKNOVH programm.
 
 #### cURL example #1 (application/json):  
 
@@ -873,8 +873,8 @@ ______
 The method serves to change your account settings.
 
 - A key "Hash" (string) must be set to valid Hash.
-- If you want to change your wallets that you should add a "Wallets" key in your request. The key must contain **array of strings**.
-- If you want to delete all your wallets then you should pass an empty array in the **Wallets** key.
+- If you want to change your wallets, add the "Wallets" key in your request. The key must contain **array of strings**.
+- If you want to delete all your wallets, pass an empty array in the **Wallets** key.
 
 #### cURL example #1 (application/json):  
 
@@ -891,7 +891,7 @@ curl -X POST  \
 https://nkn.ovh/api
 ```
 
-**The method does not implemented to application/x-www-form-urlencoded.**
+**The method is not implemented in application/x-www-form-urlencoded.**
 
 	
 #### Server returns:
@@ -1053,5 +1053,5 @@ https://nkn.ovh/api
 
 ```
 
-- If the public key is not found, the server returns a code 3.
+- If the public key is not found, the server returns the code 3.
 </details>
