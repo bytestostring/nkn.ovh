@@ -54,7 +54,8 @@ The server can receive only POST requests in the following formats:
  - application/x-www-form-urlencoded
 
 
-*Note! If you use "application/x-www-form-urlencoded" requests, then all the values in the body of your request will be automatically import as WsQuery["Value"]["KEY"] = VAL (except for the WsQuery["Method"] value)*
+**Note!**  
+If you use "application/x-www-form-urlencoded" requests, then all the values of your request's body will be automatically import as WsQuery["Value"]["KEY"] = %KEY'S_VALUE% (except for the WsQuery["Method"] value)
 
 ________
 
