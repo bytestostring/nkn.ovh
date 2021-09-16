@@ -1,6 +1,10 @@
 # nkn.ovh
 nkn.ovh - Open source monitoring for the NKN nodes
 
+## API
+
+[Documentation](blob/v1.1/API.md)
+
 ________
 
 ## System requirements.
