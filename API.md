@@ -55,13 +55,13 @@ The server can receive only POST requests in the following formats:
 
 
 **Note!**  
-If you use "application/x-www-form-urlencoded" requests, then all the values of your request's body will be automatically import as WsQuery["Value"]["KEY"] = %KEY'S_VALUE% (except for the WsQuery["Method"] value)
+If you use "application/x-www-form-urlencoded" requests, all the values of your request's body will be automatically imported as WsQuery["Value"]["KEY"] = %KEY'S_VALUE% (except for the WsQuery["Method"] value)
 
 ________
 
 # Response codes
 
-All response codes (except for the codes: 0, 2 and 3) signal to indicate an error that has occurred.
+All response codes (except for the codes: 0, 2, and 3) inform of occurred errors.
 
 - When the request has failed, the **Error** key **must** be true and the **ErrMessage** key should contains a short description.
 - The Code 0 means that your request has completed correctly.
