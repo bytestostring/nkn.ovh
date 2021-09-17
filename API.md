@@ -131,7 +131,7 @@ ________
 The methods are divided into methods require authorization and methods that no require it.  
 All methods are case-sensitive and must be lowercase.
 
-Following methods require authorization:
+The following methods require authorization:
 
 ```
 addnodes
@@ -146,7 +146,7 @@ getnodedetails
 savemysettings
 ```
   
-Following methods no require authorization:
+The following methods don't require authorization:
 
 ```
 genid
@@ -154,7 +154,7 @@ getnodeipbypublickey
 getdaemon
 ```
   
-Following methods do not give a meaningful result for POST requests and working normally only for WebSocket.  
+The following methods do not give a meaningful result for POST requests and work generally only for WebSocket.  
 So you should not use them for POST requests:
 
 ```
