@@ -3,9 +3,9 @@
 
 # Basic information about structures
 
-API requests have the following structure:
+API requests have the following structures:
 
-Golang structure view:
+Golang structure:
 ```go
 type WSQuery struct {
 	Method string `json:"Method"`
@@ -14,7 +14,7 @@ type WSQuery struct {
 
 ```
 
-JSON structure view:
+JSON structure:
 ```json
 {
 "Method":"",
@@ -24,9 +24,9 @@ JSON structure view:
 ```
 ______
 
-The server responds to incoming API requests in the format of JSON and has the following structure:
+The server responds to incoming API requests in the format of JSON and has the following structures:
 
-Golang structure view:
+Golang structure:
 ```go
 type WSReply struct {
 	Method string `json:"Method"`
@@ -37,7 +37,7 @@ type WSReply struct {
 }
 ```
 
-JSON sturcture view:
+JSON sturcture:
 ```json
 {
 "Method": "(string)",
@@ -55,17 +55,17 @@ The server can receive only POST requests in the following formats:
 
 
 **Note!**  
-If you use "application/x-www-form-urlencoded" requests, then all the values of your request's body will be automatically import as WsQuery["Value"]["KEY"] = %KEY'S_VALUE% (except for the WsQuery["Method"] value)
+If you use "application/x-www-form-urlencoded" requests, all the values of your request's body will be automatically imported as WsQuery["Value"]["KEY"] = %KEY'S_VALUE% (except for the WsQuery["Method"] value)
 
 ________
 
 # Response codes
 
-All response codes (except for the codes: 0, 2 and 3) signal to indicate an error that has occurred.
+All response codes (except for the codes: 0, 2, and 3) inform of occurred errors.
 
-- When the request has failed, the **Error** key **must** be true and the **ErrMessage** key should contains a short description.
+- If a request fails, the Error key will be "true" and the ErrMessage key will contain a short description.
 - The Code 0 means that your request has completed correctly.
-- The Code 2 refers to "addnodes" method and the code means that passed nodes added partially (Error: false; because the request has made any changes)
+- The Code 2 refers to "addnodes" method and the code means that passed nodes added partially (Error: false; because the request has made some changes)
 - The Code 3 means that the server did not find requested information (but Error: false; because it is normal behavior)
 
 ```go
@@ -79,21 +79,21 @@ o.Web.Response[6] = WSReply{Code: 6, Error: true, ErrMessage: "Name of node(-s) 
 o.Web.Response[7] = WSReply{Code: 7, Error: true, ErrMessage: "Multiple variable must be boolean"}
 o.Web.Response[8] = WSReply{Code: 8, Error: true, ErrMessage: "Ip variable must be valid string"}
 o.Web.Response[9] = WSReply{Code: 9, Error: true, ErrMessage: "Incorrect ip address(-es)"}
-o.Web.Response[10] = WSReply{Code: 10, Error: true, ErrMessage: "Passed ip address(-es) not IPv4"}
-o.Web.Response[11] = WSReply{Code: 11, Error: true, ErrMessage: "Passed ip address(-es) not in public network"}
+o.Web.Response[10] = WSReply{Code: 10, Error: true, ErrMessage: "Passed ip address(-es) was not IPv4"}
+o.Web.Response[11] = WSReply{Code: 11, Error: true, ErrMessage: "Passed ip address(-es) was not in public network"}
 o.Web.Response[12] = WSReply{Code: 12, Error: true, ErrMessage: "Nodes limit exceeded"}
 o.Web.Response[13] = WSReply{Code: 13, Error: true, ErrMessage: "Wrong delimiter passed"}
 o.Web.Response[14] = WSReply{Code: 14, Error: true, ErrMessage: "The nodes weren't added since they had been already created."}
 o.Web.Response[15] = WSReply{Code: 15, Error: true, ErrMessage: "Wrong data of NodesId passed"}
 o.Web.Response[16] = WSReply{Code: 16, Error: true, ErrMessage: "Wallets overflow"}
 o.Web.Response[17] = WSReply{Code: 17, Error: true, ErrMessage: "One or more of the passed wallets are not in the correct format"}
-o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of the passed nodes are not found. No changes."}
+o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more IDs of the passed nodes are not found. No changes were made."}
 
 //Link to apiGetNodeDetails
 o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
-o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply from the node before a timeout"}
+o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply recieved from the node within the timeout period"}
 o.Web.Response[21] = WSReply{Code: 21, Error: true, ErrMessage: "Cannot decode json of the node response (getnodestate)"}
-o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but information about neighbors has not been received before a timeout"}
+o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but no information about neighbors has been received within the timeout period"}
 o.Web.Response[23] = WSReply{Code: 23, Error: true, ErrMessage: "Cannot decode json of the node response (getneighbor)"}
 o.Web.Response[24] = WSReply{Code: 24, Error: true, ErrMessage: "Query returned an error (getneighbor)"}
 
@@ -103,35 +103,35 @@ o.Web.Response[26] = WSReply{Code: 26, Error: true, ErrMessage: "Wrong PublicKey
 
 //Link to apiRmNodesByIp
 o.Web.Response[27] = WSReply{Code: 27, Error: true, ErrMessage: "Wrong data of NodesIp passed"}
-o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes are not found. No changes."}
+o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IPs of the passed nodes weren't found. No changes were made."}
 
 o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
-o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables are overflow"}
-o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Passed lang package is not found in package slice"}
-o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack is not found as JSON file"}
+o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables were overflowed"}
+o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Requested language pack was not found in the package slice"}
+o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack was not found as JSON file"}
 
 o.Web.Response[240] = WSReply{Code: 240, Error: true, ErrMessage: "GenRandomSHA256 returned error"}
-o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have created at least 3 ID for the latest 30 minutes"}
+o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have already created 3 IDs for the latest 30 minutes"}
 o.Web.Response[253] = WSReply{Code: 253, Error: true, ErrMessage: "You have no authorization"}
-o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID length"}
-o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID is not found"}
+o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID's length"}
+o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID was not found"}
 o.Web.Response[500] = WSReply{Code: 500, Error: true, ErrMessage: "Internal server error"}
 
 //Main errors
-o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "Method variable is not passed or it has wrong format"}
-o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
-o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit is reached"}
+o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "The method variable didn't pass or was in a wrong format"}
+o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method was not found"}
+o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit has been reached"}
 o.Web.Response[1003] = WSReply{Code: 1003, Error: true, ErrMessage: "Passed JSON is incorrect"}
 ```
 ________
 
 # API methods
 
-The methods are divided into methods require authorization and methods that no require it.  
-All methods are case-sensitive and must be lowercase.
+The methods are divided into methods that require authorization and methods that don't require it.  
+All the methods are case-sensitive and must be typed in lower case.
 
-Following methods require authorization:
+The following methods require authorization:
 
 ```
 addnodes
@@ -146,7 +146,7 @@ getnodedetails
 savemysettings
 ```
   
-Following methods no require authorization:
+The following methods don't require authorization:
 
 ```
 genid
@@ -154,8 +154,8 @@ getnodeipbypublickey
 getdaemon
 ```
   
-Following methods do not give a meaningful result for POST requests and working normally only for WebSocket.  
-So you should not use them for POST requests:
+The following methods are useless if called by POST requests and work well only with WebSocket.  
+So you should not use them with POST requests:
 
 ```
 auth
@@ -220,12 +220,12 @@ ______
 
 The method serves to add nodes into your account.  
 
-- A key "Multiple" (boolean) must be set to a valid boolean (true/false for json requests or t/true/1 and f/false/0 for urlencoded requests)  
-- A key "Name" (string) must be set but can be an empty string.   
-- A key "Ip" (string) must be set:  
+- The key "Multiple" (boolean) must be set to a valid boolean (true/false for json requests or t/true/1 and f/false/0 for urlencoded requests)  
+- The key "Name" (string) must be set but can be an empty string.   
+- The key "Ip" (string) must be set:  
 If the **Multiple** key is set to false, the **Ip** must contain a single IP address.  
 If the **Multiple** key is set to true, the **Ip** must contain at least two IP addresses which are separated by either commas, spaces or line breaks.  
-- A key "Hash" (string) must be set to valid Hash.  
+- The key "Hash" (string) must be set to valid Hash.  
 
 
 
@@ -286,10 +286,10 @@ ______
 
 The method serves to delete nodes by IP addresses.
 
-- A key "NodesIp" must be set:  
+- The key "NodesIp" must be set:  
 If you use urlencoded request, the key must contain **string** with at least one IP address. Multiple IP addresses must be separated by comma.  
 If you use json request, the key must contain **array of strings** with at least one IP address. Multiple IP addresses must be separate elements of the array.  
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 #### cURL example #1 (application/json), deleting multiple nodes:  
 
@@ -333,7 +333,7 @@ https://nkn.ovh/api
 }
 ```
 
-The **NodesId** key in the returned result contains an array of nodes id which have been removed by your request.
+The **NodesId** key in the returned result contains an array of node IDs which have been removed by your request.
 </details>
 
 ## Method `rmnodes`
@@ -345,10 +345,10 @@ ______
 
 The method serves to delete nodes by their ID.
 
-- A key "NodesId" must be set:  
-If you use urlencoded request, the key must contain **string** with at least one node id. Multiple nodes id must be separated by comma.  
-If you use json request, the key must contain **array of integers** with at least one node id. Multiple nodes id must be separate elements of the array.  
-- A key "Hash" (string) must be set to valid Hash.
+- The key "NodesId" must be set:  
+If you use urlencoded request, the key must contain **string** with at least one node id. Multiple node IDs must be separated by commas.  
+If you use json request, the key must contain **array of integers** with at least one node id. Multiple node IDs must be separate elements of the array.  
+- The key "Hash" (string) must be set to valid Hash.
 
 	
 #### cURL example #1 (application/json), deleting multiple nodes:  
@@ -393,7 +393,7 @@ https://nkn.ovh/api
 }
 ```
 
-The **NodesId** key in the returned result contains an array of nodes id which have been removed by your request.  
+The **NodesId** key in the returned result contains an array of node IDs which have been removed by your request.  
 
 </details>
 
@@ -406,7 +406,7 @@ ______
 
 The method serves to get your nodes list.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 	
 #### cURL example #1 (application/json):  
@@ -484,7 +484,7 @@ https://nkn.ovh/api
 The **List** key in the returned result is an array of node objects.
 
 Note!  
-- If you have no nodes added in your account, the server returns a code 3.
+- If you have no nodes added in your account, the server returns the code 3.
 - The **RelayMessageCount** key can contain a big unsigned integer value, so if you use the API to program in a language with strict types, use uint64 type while decoding the value.  
 - NKNOVH uses transparent replacement of the **SyncState** key. The key's value may not match an actual value returned by a node. 
 	
@@ -517,7 +517,7 @@ ______
 
 The method serves to get statistics of the NKN Network.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
@@ -570,8 +570,8 @@ https://nkn.ovh/api
 ```
 	
 - The keys **average_blockTime** and **average_blocksPerDay** are calculated since the NKN Mainnet launch.
-- The **last_height** key indicates to the higher height of the NKN nodes.
-- The **relays** key indicates to summary relays of the NKN nodes value's the key may be high.
+- The **last_height** key indicates the highest height of the NKN nodes.
+- The **relays** key indicates the summary of NKN nodes' relays. The key's value may be high.
 
 
 </details>
@@ -585,7 +585,7 @@ ______
 
 The method serves to get your wallets and balances.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
@@ -633,7 +633,7 @@ https://nkn.ovh/api
 ```
 
 - The **Wallets** key contains **an array of objects**.
-- If you have no wallets in your account, the server returns a code 3.
+- If you have no wallets in your account, the server returns the code 3.
 
 </details>
 
@@ -646,7 +646,7 @@ ______
 
 The method serves to get a price of the NKN coin.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
@@ -696,7 +696,7 @@ https://nkn.ovh/api
 
 ______
 
-The method serves to get an information about the NKNOVH programm.
+The method serves to get information about the NKNOVH programm.
 
 #### cURL example #1 (application/json):  
 
@@ -744,7 +744,7 @@ ______
 The method serves to get information about your nodes, your wallets, prices of the NKN coin, NKN Network's statistics and about the NKNOVH programm  
 The method calls methods: getmynodes, getmywallets, getprices, getnetstatus, getdaemon; and returns a single JSON. 
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 	
 
 #### cURL example #1 (application/json):  
@@ -872,9 +872,9 @@ ______
 
 The method serves to change your account settings.
 
-- A key "Hash" (string) must be set to valid Hash.
-- If you want to change your wallets that you should add a "Wallets" key in your request. The key must contain **array of strings**.
-- If you want to delete all your wallets then you should pass an empty array in the **Wallets** key.
+- The key "Hash" (string) must be set to valid Hash.
+- If you want to change your wallets, add the "Wallets" key in your request. The key must contain **array of strings**.
+- If you want to delete all your wallets, pass an empty array in the **Wallets** key.
 
 #### cURL example #1 (application/json):  
 
@@ -891,7 +891,7 @@ curl -X POST  \
 https://nkn.ovh/api
 ```
 
-**The method does not implemented to application/x-www-form-urlencoded.**
+**The method is not implemented in application/x-www-form-urlencoded.**
 
 	
 #### Server returns:
@@ -919,8 +919,8 @@ ______
 The method serves to get node details information by node id.  
 The method returns online data.
 
-- A key "Hash" (string) must be set to valid Hash.
-- A key "NodeId" (integer) must be set to node id.
+- The key "Hash" (string) must be set to valid Hash.
+- The key "NodeId" (integer) must be set to node id.
 
 
 #### cURL example #1 (application/json):  	
@@ -1009,9 +1009,9 @@ https://nkn.ovh/api
 ______
 
 The method serves to get the node IP address by passed PublicKey.  
-The method works to the NKN Network only.
+The method works with the NKN Network only.
 
-- A key "PublicKey" (string) must be set and contain a node public key.
+- The key "PublicKey" (string) must be set and contain a node public key.
 
 #### cURL example #1 (application/json):  	
 	
@@ -1053,5 +1053,5 @@ https://nkn.ovh/api
 
 ```
 
-- If the public key is not found, the server returns a code 3.
+- If the public key is not found, the server returns the code 3.
 </details>
