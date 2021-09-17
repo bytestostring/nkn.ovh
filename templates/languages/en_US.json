@@ -94,6 +94,9 @@
 		"control": {
 		  "close": "Close"
 		},
+		"nodeLookup": {
+			"title": "Online node checker"
+		},
 		"addNodes": {
 		  "title": "Add nodes",
 		  "label_single": "Single",

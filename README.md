@@ -9,12 +9,12 @@ ________
 
 ## System requirements.
 
-- Starting at version 1.1 the programm can working in standalone mode (without frontend proxy), but only for HTTP protocol.
+- Since version 1.1 the programm can work in standalone mode (without frontend proxy), but only for HTTP protocol.
 - Network bandwidth 30 mbps+.
 - MySQL 5.6+ / MariaDB 10+ with a InnoDB support.
-- As least 512MB RAM
+- At least 512MB RAM
 - (Optional) Any frontend server with WebSocket proxy support for HTTPS protocol access.
-- For build the nknovh daemon you need Golang 1.15 or higher
+- For building the nknovh daemon, you need Golang 1.15 or higher
 
 
 ## Build from source
@@ -30,11 +30,11 @@ go build cmd/nknovh/nknovh.go
 GOOS=js GOARCH=wasm go build -ldflags=-s -o web/static/lib.wasm cmd/wasm/wasm.go
 ```
 
-Note. If you have compiled WebAssembly (wasm.go), then you must copy **wasm_exec.js** from your golang distribution to **web/static/js/** directory.
-As example, for Go version 1.15 that file can be found here:
+Note. If you have compiled WebAssembly (wasm.go), make sure to copy **wasm_exec.js** from your golang distribution to **web/static/js/** directory.
+As example, for Go version 1.15, this file can be found here:
 https://github.com/golang/go/blob/dev.boringcrypto.go1.15/misc/wasm/wasm_exec.js
 
-2. Create a database and import the sql file like this:
+2. Create a database and import the sql file this way:
 
 ```
 mysql -uroot -p
@@ -50,7 +50,7 @@ cp conf.json.example conf.json
 
 ```
 
-4. Edit DB settings in the configuration file **conf.json**, Also if you use proxy server, you must add your proxy server IP into **TrustedProxies** json array.
+4. Edit DB settings in the configuration file **conf.json**, Also if you use proxy server, add your proxy server IP into **TrustedProxies** json array.
 
 6. Run daemon
 
@@ -67,7 +67,7 @@ You can check journal files in the **logs** directory
 
 0. Stop your nknovh: kill -9 / systemctl stop nknovh / etc 
 
-1. Check the version your nknovh
+1. Check the version of your nknovh
 
 ```
 cat conf.json | grep "Version"
@@ -86,7 +86,7 @@ go build cmd/nknovh/nknovh.go
 GOOS=js GOARCH=wasm go build -ldflags=-s -o web/static/lib.wasm cmd/wasm/wasm.go
 ```
 
-Note, if you have compiled lib.wasm, then you must copy wasm_exec.js from your golang distribution to web/static/js directory.
+Note, if you have compiled lib.wasm, make sure to copy wasm_exec.js from your golang distribution to web/static/js directory.
 
 
 4. Before restarting the nknovh, you must check for sql changes into "sqlupgrade" directory and import the changes if it exists.
@@ -107,7 +107,7 @@ systemctl start nknovh
 
 ## Donation
 
-If you want to help development the project:  
+If you want to support this project:  
 
 - Ethereum: [0xD5305428401C9295401c89ff14CB8f6588A34F20](https://etherscan.io/address/0xD5305428401C9295401c89ff14CB8f6588A34F20)
 - NKN: [NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE](https://explorer.nkn.org/detail/address/NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE/1)

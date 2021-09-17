@@ -128,7 +128,7 @@ func (o *NKNOVH) RegisterResponse() {
 
 	//Link to apiGetNodeDetails
 	o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
-	o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply from the node before a timeout"}
+	o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline or has not respond before a timeout exceeded"}
 	o.Web.Response[21] = WSReply{Code: 21, Error: true, ErrMessage: "Cannot decode json of the node response (getnodestate)"}
 	o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but information about neighbors has not been received before a timeout"}
 	o.Web.Response[23] = WSReply{Code: 23, Error: true, ErrMessage: "Cannot decode json of the node response (getneighbor)"}
@@ -141,6 +141,10 @@ func (o *NKNOVH) RegisterResponse() {
 	//Link to apiRmNodesByIp
 	o.Web.Response[27] = WSReply{Code: 27, Error: true, ErrMessage: "Wrong data of NodesIp passed"}
 	o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes are not found. No changes."}
+
+	//Link to apiGetNodeDetails
+	//The code 29 reserved by apiGetNodeDetails
+	o.Web.Response[30] = WSReply{Code: 30, Error: true, ErrMessage: "NodeState structure of your node has invalid format"}
 
 
 	o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
@@ -161,6 +165,7 @@ func (o *NKNOVH) RegisterResponse() {
 	o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
 	o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit is reached"}
 	o.Web.Response[1003] = WSReply{Code: 1003, Error: true, ErrMessage: "Passed JSON is incorrect"}
+	o.Web.Response[1004] = WSReply{Code: 1004, Error: true, ErrMessage: "The request body is broken or bytes limit reached"}
 	return
 }
 
@@ -237,10 +242,6 @@ func (o *NKNOVH) WsClientGC(c *CLIENT) {
 
 func (o *NKNOVH) WsClientUpdate(c *CLIENT, hashId int) {
 	t := time.Now()
-	if c.NotWs {
-		c.HashId = hashId
-		return
-	}
 	o.WsClientGC(c)
 
 	debugf := func() {
@@ -403,6 +404,9 @@ func (o *NKNOVH) CreateIndex(w http.ResponseWriter, r *http.Request, _ httproute
 }
 
 func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+
+	var MaxBytesReader int64 = 16 << 20
+
 	w.Header().Add("Content-Type", "application/json")
 	ip, err := o.getIp(o.conf.TrustedProxies, r)
 	if err != nil {
@@ -418,9 +422,13 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 	data := new(WSQuery)
 	value := map[string]interface{}{}
 
+	r.Body = http.MaxBytesReader(w, r.Body, MaxBytesReader) 
+
 	// application/x-www-form-urlencoded
 	err = r.ParseForm()
 	if err != nil {
+		_, wsreply := o.WsError(data, 1004)
+		o.WriteJson(&wsreply, w)
 		return
 	}
 	for key, val := range r.Form {
@@ -428,7 +436,9 @@ func (o *NKNOVH) apiPOST(w http.ResponseWriter, r *http.Request, params httprout
 	}
 
 	if len(value) == 0 {
-		err = json.NewDecoder(r.Body).Decode(data)
+		d := json.NewDecoder(r.Body)
+		d.DisallowUnknownFields()
+		err = d.Decode(data)
 		if err != nil {
 			_, wsreply := o.WsError(data, 1003)
 			o.WriteJson(&wsreply, w)
@@ -554,5 +564,15 @@ func (o *NKNOVH) Listen() {
 	router.POST("/api", o.apiPOST)
 
 	router.NotFound = http.FileServer(http.Dir("./web/"))
-	log.Fatal(http.ListenAndServe(":" + strconv.Itoa(o.conf.HttpServer.Port), router))
+
+	s := &http.Server{
+		Addr:           ":" + strconv.Itoa(o.conf.HttpServer.Port),
+		Handler:		router,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   30 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+}
+
+	//log.Fatal(http.ListenAndServe(":" + strconv.Itoa(o.conf.HttpServer.Port), router))
+	log.Fatal(s.ListenAndServe())
 }

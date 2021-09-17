@@ -94,6 +94,9 @@
 		"control":{
 			"close":"Закрыть"
 		},
+		"nodeLookup": {
+			"title": "Проверка узла онлайн"
+		},
 		"addNodes":{
 			"title":"Добавить узлы",
 			"label_single":"Один",

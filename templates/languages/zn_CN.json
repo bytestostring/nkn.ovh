@@ -94,6 +94,9 @@
 		"control": {
 		  "close": "关闭"
 		},
+		"nodeLookup": {
+			"title": "Online node checker"
+		},
 		"addNodes": {
 		  "title": "添加节点",
 		  "label_single": "单个",

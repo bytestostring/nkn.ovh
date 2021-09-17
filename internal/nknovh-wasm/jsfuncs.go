@@ -104,5 +104,9 @@ func (c *CLIENT) RegisterJSFuncs() {
 		c.SwitchTab(x[0].String())
 		return nil
 	}))
+	js.Global().Set("checkOnline", js.FuncOf(func(_ js.Value, x []js.Value) interface{} {
+		c.checkOnline(x[0].Int())
+		return nil
+	}))
 	return
 }

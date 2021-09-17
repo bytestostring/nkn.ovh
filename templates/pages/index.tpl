@@ -150,6 +150,7 @@
 <div class="td" id="check" style="width: 10px !important; min-width: 10px !important;">
 <input type="checkbox" name="control-all" id="control-all" onchange="toggleCheckBox()"></div>
 <div class="td" id="t_name" onclick="preSortNodes(this)">{{ .LANG.NodesTables.Other.col_name }}</div>
+<div class="td" id="t_op"></div>
 <div class="td" id="t_ip" onclick="preSortNodes(this)">{{ .LANG.NodesTables.Other.col_ip }}</div>
 <div class="td" id="t_status" onclick="preSortNodes(this)">{{ .LANG.NodesTables.Other.col_status }}</div>
 <div class="td" id="t_proposal" onclick="preSortNodes(this)">{{ .LANG.NodesTables.Other.col_proposal }}</div>
@@ -167,6 +168,7 @@
 </div>
 <div class="clear: both"></div>
 
+{{{include "pages/modal/nodelookup.tpl"}}}|m
 {{{include "pages/modal/addnodes.tpl"}}}|m
 {{{include "pages/modal/reference.tpl"}}}|m
 {{{include "pages/modal/changelog.tpl"}}}|m
@@ -174,4 +176,79 @@
 {{{include "pages/modal/donate.tpl"}}}|m
 {{{include "pages/modal/disconnect.tpl"}}}|m
 `
+
+var nodelookup_view  = `<div class="lookup_neighbor_main"><div style="float: left; margin-right: 10px;">
+		<div class="lookup_title_neighborping">Neighbors ping:</div>
+		<div class="lookup_neighbor_ping">
+		<div class="tr">
+		<div class="td">Min:</div><div class="td">%[22]v ms</div>
+		</div>
+		<div class="tr">
+		<div class="td">Avg:</div><div class="td">%[23]v ms</div>
+		</div>
+		<div class="tr">
+		<div class="td">Max:</div><div class="td">%[24]v ms</div>
+		</div>
+		</div>
+		</div>
+
+		<div style="float: left; padding-left: 10px; padding-bottom: 5px; border-left: 1px dashed #151515;border-bottom: 1px dashed #151515;">
+		<div class="lookup_title_neighbor">Neighbors count: %[25]v</div>
+		<div class="lookup_neighbor_full">
+		<div class="tr">
+		<div class="lookup_neighbor_nopers" style="width: %[18]v%%;">&nbsp;</div>
+		<div class="lookup_neighbor_persist" style="width: %[19]v%%;">&nbsp;</div>
+		</div>
+		<div class="tr">
+		<div class="td" style="text-align: center">%[20]v</div>
+		<div class="td" style="text-align: center">%[21]v</div>
+		</div>
+		</div>
+
+		<div class="lookup_neighbor_reference">
+		<div class="tr">
+		<div class="td">&nbsp;</div>
+		<div class="td">– not PERSIST_FINISHED</div>
+		</div>
+		<div class="tr">
+		<div class="td">&nbsp;</div>
+		<div class="td">– PERSIST_FINISHED</div>
+		</div>
+		</div>
+		</div>
+		</div>
+		<div style="clear:  both;"></div>
+		<div class="lookup_title_nodestate">NodeState:</div><div class="lookup_table">
+		<div class="tr"><div class="td">Addr:</div><div class="td">%[1]v</div></div>
+		<div class="tr"><div class="td">Currtimestamp:</div><div class="td">%[2]v</div></div>
+		<div class="tr"><div class="td">Height:</div><div class="td">%[3]v</div></div>
+		<div class="tr"><div class="td">ID:</div><div class="td">%[4]v</div></div>
+		<div class="tr"><div class="td">Jsonrpcport:</div><div class="td">%[5]v</div></div>
+		<div class="tr"><div class="td">ProposalSubmitted:</div><div class="td">%[6]v</div></div>
+		<div class="tr"><div class="td">ProtocolVersion:</div><div class="td">%[7]v</div></div>
+		<div class="tr"><div class="td">PublicKey:</div><div class="td">%[8]v</div></div>
+		<div class="tr"><div class="td">RelayMessageCount:</div><div class="td">%[9]v</div></div>
+		<div class="tr"><div class="td">SyncState:</div><div class="td">%[10]v</div></div>
+		<div class="tr"><div class="td">Tlsjsonrpcdomain:</div><div class="td">%[11]v</div></div>
+		<div class="tr"><div class="td">Tlsjsonrpcport:</div><div class="td">%[12]v</div></div>
+		<div class="tr"><div class="td">Tlswebsocketdomain:</div><div class="td">%[13]v</div></div>
+		<div class="tr"><div class="td">Tlswebsocketport:</div><div class="td">%[14]v</div></div>
+		<div class="tr"><div class="td">Uptime:</div><div class="td">%[15]v</div></div>
+		<div class="tr"><div class="td">Version:</div><div class="td">%[16]v</div></div>
+		<div class="tr"><div class="td">Websocketport:</div><div class="td">%[17]v</div></div>
+		</div>`
+
+		var nodelookup_genid = `<div class="lookup_nodeerr">
+		<div>%[1]v</div>
+		<div>Wallet address: %[2]v</div>
+		<div>Public Key: %[3]v</div>
+		</div>`
+
+		var nodelookup_pruning = `<div class="lookup_nodeerr">
+		<div>%[1]v</div>
+		</div>`
+
+		var nodelookup_default = `<div class="lookup_nodeerr">
+		<div>%[1]v</div>
+		</div>`
 </script>

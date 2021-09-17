@@ -24,7 +24,9 @@ func (o *NKNOVH) jrpc_get(obj *JsonRPCConf) ([]byte, error) {
 				}
 				return answer, nil
 			}
-			err := json.NewDecoder(res.Body).Decode(obj.UnmarshalData)
+			d := json.NewDecoder(res.Body)
+			d.DisallowUnknownFields()
+			err := d.Decode(obj.UnmarshalData)
 			if err != nil {
 				answer = []byte(err.Error())
 				return answer, err
