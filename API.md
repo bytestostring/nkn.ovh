@@ -220,12 +220,12 @@ ______
 
 The method serves to add nodes into your account.  
 
-- A key "Multiple" (boolean) must be set to a valid boolean (true/false for json requests or t/true/1 and f/false/0 for urlencoded requests)  
-- A key "Name" (string) must be set but can be an empty string.   
-- A key "Ip" (string) must be set:  
+- The key "Multiple" (boolean) must be set to a valid boolean (true/false for json requests or t/true/1 and f/false/0 for urlencoded requests)  
+- The key "Name" (string) must be set but can be an empty string.   
+- The key "Ip" (string) must be set:  
 If the **Multiple** key is set to false, the **Ip** must contain a single IP address.  
 If the **Multiple** key is set to true, the **Ip** must contain at least two IP addresses which are separated by either commas, spaces or line breaks.  
-- A key "Hash" (string) must be set to valid Hash.  
+- The key "Hash" (string) must be set to valid Hash.  
 
 
 
@@ -286,10 +286,10 @@ ______
 
 The method serves to delete nodes by IP addresses.
 
-- A key "NodesIp" must be set:  
+- The key "NodesIp" must be set:  
 If you use urlencoded request, the key must contain **string** with at least one IP address. Multiple IP addresses must be separated by comma.  
 If you use json request, the key must contain **array of strings** with at least one IP address. Multiple IP addresses must be separate elements of the array.  
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 #### cURL example #1 (application/json), deleting multiple nodes:  
 
@@ -333,7 +333,7 @@ https://nkn.ovh/api
 }
 ```
 
-The **NodesId** key in the returned result contains an array of nodes id which have been removed by your request.
+The **NodesId** key in the returned result contains an array of node IDs which have been removed by your request.
 </details>
 
 ## Method `rmnodes`
@@ -345,10 +345,10 @@ ______
 
 The method serves to delete nodes by their ID.
 
-- A key "NodesId" must be set:  
-If you use urlencoded request, the key must contain **string** with at least one node id. Multiple nodes id must be separated by comma.  
-If you use json request, the key must contain **array of integers** with at least one node id. Multiple nodes id must be separate elements of the array.  
-- A key "Hash" (string) must be set to valid Hash.
+- The key "NodesId" must be set:  
+If you use urlencoded request, the key must contain **string** with at least one node id. Multiple node IDs must be separated by commas.  
+If you use json request, the key must contain **array of integers** with at least one node id. Multiple node IDs must be separate elements of the array.  
+- The key "Hash" (string) must be set to valid Hash.
 
 	
 #### cURL example #1 (application/json), deleting multiple nodes:  
@@ -393,7 +393,7 @@ https://nkn.ovh/api
 }
 ```
 
-The **NodesId** key in the returned result contains an array of nodes id which have been removed by your request.  
+The **NodesId** key in the returned result contains an array of node IDs which have been removed by your request.  
 
 </details>
 
@@ -406,7 +406,7 @@ ______
 
 The method serves to get your nodes list.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 	
 #### cURL example #1 (application/json):  
@@ -517,7 +517,7 @@ ______
 
 The method serves to get statistics of the NKN Network.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
