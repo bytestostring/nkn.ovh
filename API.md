@@ -570,8 +570,8 @@ https://nkn.ovh/api
 ```
 	
 - The keys **average_blockTime** and **average_blocksPerDay** are calculated since the NKN Mainnet launch.
-- The **last_height** key indicates to the higher height of the NKN nodes.
-- The **relays** key indicates to summary relays of the NKN nodes value's the key may be high.
+- The **last_height** key indicates the highest height of the NKN nodes.
+- The **relays** key indicates the summary of NKN nodes' relays. The key's value may be high.
 
 
 </details>
@@ -585,7 +585,7 @@ ______
 
 The method serves to get your wallets and balances.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
