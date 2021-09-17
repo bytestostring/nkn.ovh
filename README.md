@@ -11,7 +11,7 @@ ________
 
 - Since version 1.1 the programm can work in standalone mode (without frontend proxy), but only for HTTP protocol.
 - Network bandwidth 30 mbps+.
-- MySQL 5.6+ / MariaDB 10+ with a InnoDB support.
+- MySQL 5.6+ / MariaDB 10+ with InnoDB support.
 - At least 512MB RAM
 - (Optional) Any frontend server with WebSocket proxy support for HTTPS protocol access.
 - For building the nknovh daemon, you need Golang 1.15 or higher
@@ -89,8 +89,8 @@ GOOS=js GOARCH=wasm go build -ldflags=-s -o web/static/lib.wasm cmd/wasm/wasm.go
 Note, if you have compiled lib.wasm, make sure to copy wasm_exec.js from your golang distribution to web/static/js directory.
 
 
-4. Before restarting the nknovh, you must check for sql changes into "sqlupgrade" directory and import the changes if it exists.
-Example, your previous version was "1.1.0" and you need upgrade your database structure to the latest version "1.1.0-dirty-4":
+4. Before restarting the nknovh, check "sqlupgrade" directory for sql changes and import the changes if they exist.
+For example, if your current version is "1.1.0" and you need to upgrade your database structure to the latest version "1.1.0-dirty-4":
 
 
 ```
