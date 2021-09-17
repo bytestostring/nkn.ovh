@@ -3,9 +3,9 @@
 
 # Basic information about structures
 
-API requests have the following structure:
+API requests have the following structures:
 
-Golang structure view:
+Golang structure:
 ```go
 type WSQuery struct {
 	Method string `json:"Method"`
@@ -14,7 +14,7 @@ type WSQuery struct {
 
 ```
 
-JSON structure view:
+JSON structure:
 ```json
 {
 "Method":"",
@@ -24,9 +24,9 @@ JSON structure view:
 ```
 ______
 
-The server responds to incoming API requests in the format of JSON and has the following structure:
+The server responds to incoming API requests in the format of JSON and has the following structures:
 
-Golang structure view:
+Golang structure:
 ```go
 type WSReply struct {
 	Method string `json:"Method"`
@@ -37,7 +37,7 @@ type WSReply struct {
 }
 ```
 
-JSON sturcture view:
+JSON sturcture:
 ```json
 {
 "Method": "(string)",
@@ -114,7 +114,7 @@ o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed langua
 o.Web.Response[240] = WSReply{Code: 240, Error: true, ErrMessage: "GenRandomSHA256 returned error"}
 o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have already created 3 IDs for the latest 30 minutes"}
 o.Web.Response[253] = WSReply{Code: 253, Error: true, ErrMessage: "You have no authorization"}
-o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID length"}
+o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID's length"}
 o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID was not found"}
 o.Web.Response[500] = WSReply{Code: 500, Error: true, ErrMessage: "Internal server error"}
 
@@ -646,7 +646,7 @@ ______
 
 The method serves to get a price of the NKN coin.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 
 
 #### cURL example #1 (application/json):  
@@ -744,7 +744,7 @@ ______
 The method serves to get information about your nodes, your wallets, prices of the NKN coin, NKN Network's statistics and about the NKNOVH programm  
 The method calls methods: getmynodes, getmywallets, getprices, getnetstatus, getdaemon; and returns a single JSON. 
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 	
 
 #### cURL example #1 (application/json):  
@@ -872,7 +872,7 @@ ______
 
 The method serves to change your account settings.
 
-- A key "Hash" (string) must be set to valid Hash.
+- The key "Hash" (string) must be set to valid Hash.
 - If you want to change your wallets, add the "Wallets" key in your request. The key must contain **array of strings**.
 - If you want to delete all your wallets, pass an empty array in the **Wallets** key.
 
@@ -919,8 +919,8 @@ ______
 The method serves to get node details information by node id.  
 The method returns online data.
 
-- A key "Hash" (string) must be set to valid Hash.
-- A key "NodeId" (integer) must be set to node id.
+- The key "Hash" (string) must be set to valid Hash.
+- The key "NodeId" (integer) must be set to node id.
 
 
 #### cURL example #1 (application/json):  	
@@ -1009,9 +1009,9 @@ https://nkn.ovh/api
 ______
 
 The method serves to get the node IP address by passed PublicKey.  
-The method works to the NKN Network only.
+The method works with the NKN Network only.
 
-- A key "PublicKey" (string) must be set and contain a node public key.
+- The key "PublicKey" (string) must be set and contain a node public key.
 
 #### cURL example #1 (application/json):  	
 	
