@@ -9,7 +9,7 @@ ________
 
 ## System requirements.
 
-- Starting at version 1.1 the programm can working in standalone mode (without frontend proxy), but only for HTTP protocol.
+- Starting at version 1.1 the programm can work in standalone mode (without frontend proxy), but only for HTTP protocol.
 - Network bandwidth 30 mbps+.
 - MySQL 5.6+ / MariaDB 10+ with a InnoDB support.
 - As least 512MB RAM
