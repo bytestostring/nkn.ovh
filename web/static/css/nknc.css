@@ -154,13 +154,14 @@ input.t-enter {
 	padding: 10px;
 }
 
-#addNodesErr, #settingsErr {
+#addNodesErr, #settingsErr, [id^="nodeLookupErr-"] {
 	display: none;
 	text-align: center;
-	max-width: 300px;
+	max-width: 350px;
 	margin: 0 auto;
-	border: 1px dashed red;
-	background: rgba(255,255,255,0.3);
+	color: white;
+	border: 1px solid #151515;
+	background: rgba(170,40,40,0.9);
 	margin-top: 15px;
 	padding: 10px;
 }
@@ -345,6 +346,12 @@ input.t-enter {
 	border: 1px solid #151515;
 	padding: 4px;
 	vertical-align: middle
+}
+
+.td.op img {
+	max-width: 20px;
+	max-height:  20px;
+	vertical-align:  middle;
 }
 
 .tr.waiting {
@@ -750,4 +757,142 @@ padding: 6px;
 }
 .switchLang span.active {
 	background: rgba(150,15,30,0.8);
+}
+
+#nodeLookupModal .modal-body {
+	min-height: 220px;
+}
+
+[id^="nodeLookupLoading-"] {
+	text-align: center;
+	margin: 5px;
+}
+
+.lookup_table .tr {
+	display: table-row;
+}
+.lookup_table .td {
+	padding: 3px;
+	display: table-cell;
+}
+.lookup_table .td:first-child {
+	color: green;
+}
+.lookup_table {
+	display: table;
+	width: 98%;
+	margin: 0 auto;
+	text-align:left;
+	border-collapse: collapse;
+	background: transparent;
+	font-size: 14px;
+}
+.lookup_title_nodestate {
+	margin:  10px;
+}
+
+.lookup_title_neighbor {
+	margin: 10px;
+	text-align: center;
+	width: 22 0px;
+}
+
+.lookup_neighbor_full {
+	width:  220px;
+	display:  table;
+}
+.lookup_neighbor_full .tr {
+	display:  table-row;
+}
+.lookup_neighbor_full .td {
+	display:  table-cell;
+}
+.lookup_neighbor_nopers {
+	background: rgba(255, 20, 20, 0.9);
+	display:  table-cell;
+}
+
+.lookup_neighbor_persist {
+	background: rgba(20, 255, 20, 0.9);
+	display: table-cell;
+}
+
+.lookup_neighbor_ping {
+	display:  table;
+	width: 180px;
+}
+
+.lookup_neighbor_ping .tr {
+	display:  table-row;
+}
+.lookup_neighbor_ping .td {
+	font-size:  13px;
+	padding: 4px;
+	border:  1px solid rgba(30,30,30,0.2);
+	display:  table-cell;
+	text-align:  center;
+}
+
+.lookup_title_neighborping {
+	margin:  10px;
+	width:  180px;
+	text-align:  center;
+}
+
+.lookup_neighbor_reference {
+	padding-top: 3px;
+	border-top:  1px solid black;
+	display: table;
+	width:  220px;
+}
+
+.lookup_neighbor_reference .tr {
+	display: table-row;
+}
+
+.lookup_neighbor_reference .td {
+	padding: 3px;
+	margin: 2px;
+	min-width: 10px;
+	font-size:  12px;
+	display: table-cell;
+	text-align:  center;
+}
+
+.lookup_neighbor_reference .tr:nth-child(1) .td:first-child {
+	width: 22px;
+	text-align:  left;
+	height: 22px;
+	padding:  0px;
+	border:  1px solid black;
+	background: rgba(255, 20, 20, 0.9);
+}
+
+.lookup_neighbor_reference .tr:nth-child(2) .td:first-child {
+	width: 22px;
+	text-align:  left;
+	height: 22px;
+	padding:  0px;
+	border:  1px solid black;
+	background: rgba(20, 255, 20, 0.9);
+}
+
+.lookup_neighbor_main {
+	display:         flex;
+	flex-wrap:       wrap;
+	justify-content: center;
+}
+
+.lookup_nodeerr {
+	word-wrap: normal;
+    text-align: center;
+    max-width: 400px;
+  	word-wrap: break-word;
+ 	overflow-wrap: break-word;
+	margin: 0 auto;
+    color: white;
+    border: 1px solid #151515;
+    background: rgba(170,140,50,0.9);
+    margin-top: 15px;
+    padding: 10px;
 }

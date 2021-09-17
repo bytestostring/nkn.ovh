@@ -27,11 +27,14 @@ func (o *NKNOVH) updateUniqWatch(c *CLIENT) error {
 	return nil
 }
 
-func (o *NKNOVH) WsError(q *WSQuery, code int) (err error, r WSReply) {
+func (o *NKNOVH) WsError(q *WSQuery, code int, cb_value ...bool) (err error, r WSReply) {
 	var ok bool
 	if r, ok = o.Web.Response[code]; ok {
 		r.Method = q.Method
 		err = errors.New(r.ErrMessage)
+		if len(cb_value) > 0 {
+			r.Value = q.Value
+		}
 		return
 	}
 	err = errors.New("Response key is not found")
@@ -100,11 +103,11 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	var node_id int
 	if raw_node_id, ok := q.Value["NodeId"].(float64); !ok {
 		if raw_node_id_s, ok := q.Value["NodeId"].(string); !ok {
-			return o.WsError(q, 19)
+			return o.WsError(q, 19, true)
 		} else {
 			x, err := strconv.Atoi(raw_node_id_s)
 			if err != nil {
-				return o.WsError(q, 19)
+				return o.WsError(q, 19, true)
 			}
 			node_id = x
 		}
@@ -118,9 +121,9 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	err = row.Scan(&node_name, &node_ip)
 	switch {
 		case err == sql.ErrNoRows:
-			return o.WsError(q, 18)
+			return o.WsError(q, 18, true)
 		case err != nil:
-			return o.WsError(q, 1)
+			return o.WsError(q, 1, true)
 	}
 	var data NodeSt
 	state := &JsonRPCConf{Ip:node_ip, Method:"getnodestate", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient, UnmarshalData: &data.State}
@@ -129,21 +132,25 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	res, err := o.jrpc_get(state)
 	t1_time := time.Now().Sub(t1)
 	if err != nil && len(res) == 0 {
-		return o.WsError(q, 20)
+		return o.WsError(q, 20, true)
 	}
 	if err != nil && len(res) > 0 {
-		return o.WsError(q, 21)
+		return o.WsError(q, 21, true)
 	}
-	if b := o.Validator.IsNodeStateValid(&data.State); !b {
-		return o.WsError(q, 25)
-	}
+
 	m := map[string]interface{}{}
 
 	if data.State.Error != nil {
 		r := o.respErrorHandling(data.State.Error)
-		m["Data"] = r
-		return nil, WSReply{Method: q.Method, Code: 3, Value: m,}
+		m["NodeError"] = r
+		m["NodeId"] = node_id
+		return nil, WSReply{Method: q.Method, Code: 29, Value: m,}
 	}
+
+	if b := o.Validator.IsNodeStateValid(&data.State); !b {
+		return o.WsError(q, 30, true)
+	}
+
 
 	neighbor := &JsonRPCConf{Ip:node_ip, Method:"getneighbor", Params: &json.RawMessage{'{','}'}, Client: o.http.MainClient, UnmarshalData: &data.Neighbor}
 
@@ -152,14 +159,14 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 	t2_time := time.Now().Sub(t2)
 
 	if err != nil && len(res) == 0 {
-		return o.WsError(q, 22)
+		return o.WsError(q, 22, true)
 	}
 	if err != nil && len(res) > 0 {
-		return o.WsError(q, 23)
+		return o.WsError(q, 23, true)
 	}
 
 	if data.Neighbor.Error != nil {
-		return o.WsError(q, 24)
+		return o.WsError(q, 24, true)
 	}
 
 	type NodeStats struct {
@@ -210,7 +217,7 @@ func (o *NKNOVH) apiGetNodeDetails(q *WSQuery, c *CLIENT) (err error, r WSReply)
 		ns.NeighborCount = ncount
 		ns.NeighborPersist = sumpersist
 	}
-
+	m["NodeId"] = node_id
 	m["NodeStats"] = ns
 	t0_time := time.Now().Sub(t0)
 	m["DebugInfo"] = map[string]interface{}{
@@ -751,7 +758,13 @@ func (o *NKNOVH) apiAuth(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 			return o.WsError(q, 1)
 		break
 		}
-	o.WsClientUpdate(c, id)
+
+	if c.NotWs {
+		c.HashId = id
+	} else {
+		o.WsClientUpdate(c, id)
+	}
+	
 	value := map[string]interface{}{}
 	value["Hash"] = hash
 	return err, WSReply{Method: q.Method, Code: 0, Value: value,}
