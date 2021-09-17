@@ -79,8 +79,8 @@ o.Web.Response[6] = WSReply{Code: 6, Error: true, ErrMessage: "Name of node(-s) 
 o.Web.Response[7] = WSReply{Code: 7, Error: true, ErrMessage: "Multiple variable must be boolean"}
 o.Web.Response[8] = WSReply{Code: 8, Error: true, ErrMessage: "Ip variable must be valid string"}
 o.Web.Response[9] = WSReply{Code: 9, Error: true, ErrMessage: "Incorrect ip address(-es)"}
-o.Web.Response[10] = WSReply{Code: 10, Error: true, ErrMessage: "Passed ip address(-es) not IPv4"}
-o.Web.Response[11] = WSReply{Code: 11, Error: true, ErrMessage: "Passed ip address(-es) not in public network"}
+o.Web.Response[10] = WSReply{Code: 10, Error: true, ErrMessage: "Passed ip address(-es) was not IPv4"}
+o.Web.Response[11] = WSReply{Code: 11, Error: true, ErrMessage: "Passed ip address(-es) was not in public network"}
 o.Web.Response[12] = WSReply{Code: 12, Error: true, ErrMessage: "Nodes limit exceeded"}
 o.Web.Response[13] = WSReply{Code: 13, Error: true, ErrMessage: "Wrong delimiter passed"}
 o.Web.Response[14] = WSReply{Code: 14, Error: true, ErrMessage: "The nodes weren't added since they had been already created."}
@@ -91,9 +91,9 @@ o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id 
 
 //Link to apiGetNodeDetails
 o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
-o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply from the node before a timeout"}
+o.Web.Response[20] = WSReply{Code: 20, Error: true, ErrMessage: "The node is offline / No reply recieved from the node within the timeout period"}
 o.Web.Response[21] = WSReply{Code: 21, Error: true, ErrMessage: "Cannot decode json of the node response (getnodestate)"}
-o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but information about neighbors has not been received before a timeout"}
+o.Web.Response[22] = WSReply{Code: 22, Error: true, ErrMessage: "The node is online, but no information about neighbors has been received within the timeout period"}
 o.Web.Response[23] = WSReply{Code: 23, Error: true, ErrMessage: "Cannot decode json of the node response (getneighbor)"}
 o.Web.Response[24] = WSReply{Code: 24, Error: true, ErrMessage: "Query returned an error (getneighbor)"}
 
@@ -103,25 +103,25 @@ o.Web.Response[26] = WSReply{Code: 26, Error: true, ErrMessage: "Wrong PublicKey
 
 //Link to apiRmNodesByIp
 o.Web.Response[27] = WSReply{Code: 27, Error: true, ErrMessage: "Wrong data of NodesIp passed"}
-o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes are not found. No changes."}
+o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes weren't found. No changes."}
 
 o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
-o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables are overflow"}
-o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Passed lang package is not found in package slice"}
-o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack is not found as JSON file"}
+o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables were overflowed"}
+o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Passed lang package was not found in package slice"}
+o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack was not found as JSON file"}
 
 o.Web.Response[240] = WSReply{Code: 240, Error: true, ErrMessage: "GenRandomSHA256 returned error"}
 o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have created at least 3 ID for the latest 30 minutes"}
 o.Web.Response[253] = WSReply{Code: 253, Error: true, ErrMessage: "You have no authorization"}
 o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID length"}
-o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID is not found"}
+o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID was not found"}
 o.Web.Response[500] = WSReply{Code: 500, Error: true, ErrMessage: "Internal server error"}
 
 //Main errors
-o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "Method variable is not passed or it has wrong format"}
-o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method is not found"}
-o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit is reached"}
+o.Web.Response[1000] = WSReply{Code: 1000, Error: true, ErrMessage: "The method variable didn't pass or was in a wrong format"}
+o.Web.Response[1001] = WSReply{Code: 1001, Error: true, ErrMessage: "The passed Method was not found"}
+o.Web.Response[1002] = WSReply{Code: 1002, Error: true, ErrMessage: "Connections limit has been reached"}
 o.Web.Response[1003] = WSReply{Code: 1003, Error: true, ErrMessage: "Passed JSON is incorrect"}
 ```
 ________
