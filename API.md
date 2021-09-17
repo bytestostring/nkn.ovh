@@ -128,8 +128,8 @@ ________
 
 # API methods
 
-The methods are divided into methods require authorization and methods that no require it.  
-All methods are case-sensitive and must be lowercase.
+The methods are divided into methods that require authorization and methods that don't require it.  
+All the methods are case-sensitive and must be typed in lower case.
 
 The following methods require authorization:
 
@@ -154,8 +154,8 @@ getnodeipbypublickey
 getdaemon
 ```
   
-The following methods do not give a meaningful result for POST requests and work generally only for WebSocket.  
-So you should not use them for POST requests:
+The following methods are useless if called by POST requests and work well only with WebSocket.  
+So you should not use them with POST requests:
 
 ```
 auth
