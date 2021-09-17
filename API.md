@@ -63,9 +63,9 @@ ________
 
 All response codes (except for the codes: 0, 2, and 3) inform of occurred errors.
 
-- When the request has failed, the **Error** key **must** be true and the **ErrMessage** key should contains a short description.
+- If a request fails, the Error key will be "true" and the ErrMessage key will contain a short description.
 - The Code 0 means that your request has completed correctly.
-- The Code 2 refers to "addnodes" method and the code means that passed nodes added partially (Error: false; because the request has made any changes)
+- The Code 2 refers to "addnodes" method and the code means that passed nodes added partially (Error: false; because the request has made some changes)
 - The Code 3 means that the server did not find requested information (but Error: false; because it is normal behavior)
 
 ```go
