@@ -87,7 +87,7 @@ o.Web.Response[14] = WSReply{Code: 14, Error: true, ErrMessage: "The nodes weren
 o.Web.Response[15] = WSReply{Code: 15, Error: true, ErrMessage: "Wrong data of NodesId passed"}
 o.Web.Response[16] = WSReply{Code: 16, Error: true, ErrMessage: "Wallets overflow"}
 o.Web.Response[17] = WSReply{Code: 17, Error: true, ErrMessage: "One or more of the passed wallets are not in the correct format"}
-o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more Id of the passed nodes are not found. No changes."}
+o.Web.Response[18] = WSReply{Code: 18, Error: true, ErrMessage: "One or more IDs of the passed nodes are not found. No changes were made."}
 
 //Link to apiGetNodeDetails
 o.Web.Response[19] = WSReply{Code: 19, Error: true, ErrMessage: "Wrong data of NodeId passed"}
@@ -103,16 +103,16 @@ o.Web.Response[26] = WSReply{Code: 26, Error: true, ErrMessage: "Wrong PublicKey
 
 //Link to apiRmNodesByIp
 o.Web.Response[27] = WSReply{Code: 27, Error: true, ErrMessage: "Wrong data of NodesIp passed"}
-o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IP of the passed nodes weren't found. No changes."}
+o.Web.Response[28] = WSReply{Code: 28, Error: true, ErrMessage: "One or more IPs of the passed nodes weren't found. No changes were made."}
 
 o.Web.Response[230] = WSReply{Code: 230, Error: true, ErrMessage: "No view variable passed, the variable must be string"}
 o.Web.Response[231] = WSReply{Code: 231, Error: true, ErrMessage: "No Locale variable passed, the variable must be string"}
 o.Web.Response[232] = WSReply{Code: 232, Error: true, ErrMessage: "Locale or View passed variables were overflowed"}
-o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Passed lang package was not found in package slice"}
+o.Web.Response[233] = WSReply{Code: 233, Error: true, ErrMessage: "Requested language pack was not found in the package slice"}
 o.Web.Response[234] = WSReply{Code: 234, Error: true, ErrMessage: "Passed language pack was not found as JSON file"}
 
 o.Web.Response[240] = WSReply{Code: 240, Error: true, ErrMessage: "GenRandomSHA256 returned error"}
-o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have created at least 3 ID for the latest 30 minutes"}
+o.Web.Response[252] = WSReply{Code: 252, Error: true, ErrMessage: "You have already created 3 IDs for the latest 30 minutes"}
 o.Web.Response[253] = WSReply{Code: 253, Error: true, ErrMessage: "You have no authorization"}
 o.Web.Response[254] = WSReply{Code: 254, Error: true, ErrMessage: "Incorrect ID length"}
 o.Web.Response[255] = WSReply{Code: 255, Error: true, ErrMessage: "Passed ID was not found"}
