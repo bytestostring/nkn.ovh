@@ -768,6 +768,10 @@ padding: 6px;
 	margin: 5px;
 }
 
+[id^="nodeLookupInfo-"] {
+	word-break: break-all;
+}
+
 .lookup_table .tr {
 	display: table-row;
 }
@@ -776,6 +780,7 @@ padding: 6px;
 	display: table-cell;
 }
 .lookup_table .td:first-child {
+	min-width: 150px;
 	color: green;
 }
 .lookup_table {
@@ -884,15 +889,16 @@ padding: 6px;
 }
 
 .lookup_nodeerr {
-	word-wrap: normal;
     text-align: center;
     max-width: 400px;
-  	word-wrap: break-word;
- 	overflow-wrap: break-word;
-	margin: 0 auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    margin: 0 auto;
     color: white;
     border: 1px solid #151515;
     background: rgba(170,140,50,0.9);
     margin-top: 15px;
     padding: 10px;
 }
+
+
