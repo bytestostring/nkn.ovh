@@ -803,11 +803,11 @@ padding: 6px;
 .lookup_title_neighbor {
 	margin: 10px;
 	text-align: center;
-	width: 22 0px;
+	width: 230px;
 }
 
 .lookup_neighbor_full {
-	width:  220px;
+	width:  230px;
 	display:  table;
 }
 .lookup_neighbor_full .tr {
