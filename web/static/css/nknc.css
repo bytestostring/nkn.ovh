@@ -776,8 +776,12 @@ padding: 6px;
 	display: table-row;
 }
 .lookup_table .td {
-	padding: 3px;
+	border-top: 1px dashed #909090;
+	padding: 6px;
 	display: table-cell;
+}
+.lookup_table .tr:first-child .td {
+	border-top: none !important;
 }
 .lookup_table .td:first-child {
 	min-width: 150px;
