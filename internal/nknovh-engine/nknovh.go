@@ -812,8 +812,7 @@ func (o *NKNOVH) getInfo(wg *sync.WaitGroup, obj *JsonRPCConf, inside_method str
 			obj.UnmarshalData = &data.Neighbor
 	}	
 
-	r := obj
-	_, err := o.jrpc_get(r)
+	_, err := o.jrpc_get(obj)
 	if err != nil {
 
 		// Handling UpdateNode variations
@@ -1142,7 +1141,7 @@ func (o *NKNOVH) AddNeighborAN(nei *NodeNeighbor) error {
 		}
 		
 		if _, err1 := o.sql.stmt["main"]["insertAN"].Exec(ip,&nei.Result[n].Addr,&nei.Result[n].ID,&nei.Result[n].PublicKey,&nei.Result[n].SyncState,&nei.Result[n].Height); err1 != nil {
-			o.log.Syslog("Stmt insertToAllNodes has returned an error: ("+err1.Error()+")", "sql")
+			o.log.Syslog("Stmt insertAN has returned an error: ("+err1.Error()+")", "sql")
 			continue
 		}
 	}

@@ -190,13 +190,14 @@ func (c *CLIENT) apiGetNodeDetails(data *WSReply) interface{} {
 		neP := lookup.NeighborPersist
 		nePP := float64(neP) / (float64(neC) / 100)
 		neCP := float64(100) - nePP
-		fmt.Println(nePP, neCP)
+		neOff := neC - neP
+
 		nodelook_html := js.Global().Get("nodelookup_view")
 		if !nodelook_html.Truthy() {
 			fmt.Println("nodelookup_view is not found")
 			return false
 		}
-		infodiv.Set("innerHTML", fmt.Sprintf(nodelook_html.String(), s.Addr,s.Currtimestamp,s.Height,s.ID,s.Jsonrpcport,s.ProposalSubmitted,s.ProtocolVersion,s.PublicKey,s.RelayMessageCount,s.SyncState,s.Tlsjsonrpcdomain,s.Tlsjsonrpcport, s.Tlswebsocketdomain, s.Tlswebsocketport, s.Uptime, s.Version, s.Websocketport, neCP, nePP, neC-neP, neP, lookup.MinPing, lookup.AvgPing, lookup.MaxPing, neC))
+		infodiv.Set("innerHTML", fmt.Sprintf(nodelook_html.String(), s.Addr,s.Currtimestamp,s.Height,s.ID,s.Jsonrpcport,s.ProposalSubmitted,s.ProtocolVersion,s.PublicKey,s.RelayMessageCount,s.SyncState,s.Tlsjsonrpcdomain,s.Tlsjsonrpcport, s.Tlswebsocketdomain, s.Tlswebsocketport, s.Uptime, s.Version, s.Websocketport, neCP, nePP, neOff, neP, lookup.MinPing, lookup.AvgPing, lookup.MaxPing, neC))
 		c.W.HideById(nodeload)
 		c.W.ShowById(nodeinfo)
 		return true

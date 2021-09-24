@@ -819,11 +819,13 @@ padding: 6px;
 .lookup_neighbor_nopers {
 	background: rgba(255, 20, 20, 0.9);
 	display:  table-cell;
+	height:  6px;
 }
 
 .lookup_neighbor_persist {
 	background: rgba(20, 255, 20, 0.9);
 	display: table-cell;
+	height: 6px;
 }
 
 .lookup_neighbor_ping {

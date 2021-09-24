@@ -196,8 +196,8 @@ var nodelookup_view  = `<div class="lookup_neighbor_main"><div style="float: lef
 		<div class="lookup_title_neighbor">Neighbors count: %[25]v</div>
 		<div class="lookup_neighbor_full">
 		<div class="tr">
-		<div class="lookup_neighbor_nopers" style="width: %[18]v%%;">&nbsp;</div>
-		<div class="lookup_neighbor_persist" style="width: %[19]v%%;">&nbsp;</div>
+		<div class="lookup_neighbor_nopers" style="width: %[18]v%%;"></div>
+		<div class="lookup_neighbor_persist" style="width: %[19]v%%;"></div>
 		</div>
 		<div class="tr">
 		<div class="td" style="text-align: center">%[20]v</div>
