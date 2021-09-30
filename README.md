@@ -52,13 +52,16 @@ cp conf.json.example conf.json
 
 4. Edit DB settings in the configuration file **conf.json**, Also if you use proxy server, add your proxy server IP into **TrustedProxies** json array.
 
-6. Run daemon
+5. Run daemon
 
 ```
 ./nknovh
 ```
 
-7. Optionally you can use systemd script 
+Optionally you can use systemd script located in **scripts/systemd/** (Linux)
+
+6. Go to http://your_ip:8081/
+The first loading the frontend interface may be long because the application should scan NKN Mainnet Network firstly.
 
 You can check journal files in the **logs** directory
 
