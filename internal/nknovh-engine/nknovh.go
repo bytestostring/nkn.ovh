@@ -828,6 +828,10 @@ func (o *NKNOVH) getInfo(wg *sync.WaitGroup, obj *JsonRPCConf, inside_method str
 				}
 				<-*threads
 				return err
+			case "AddNeighborAN":
+				o.log.Syslog(err.Error(), "neighbors")
+				<-*threads
+				return err
 			default:
 				<-*threads
 				return err
@@ -965,12 +969,14 @@ func (o *NKNOVH) UpdateNodeErr(resp *NodeState, params interface{}) {
 }
 
 func (o *NKNOVH) UpdateNodeAN(node *NodeState) error {
-	var ip string
 
 	if b := o.Validator.IsNodeStateValid(node); !b {
-		return errors.New("Invalid NodeState")
+		s := "Invalid NodeState (from UpdateNodeAN)"
+		o.log.Syslog(s, "main")
+		return errors.New(s)
 	}
 
+	var ip string
 	re_ip := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
 	if tmp := re_ip.FindString(node.Result.Addr); tmp != "" {
 		ip = tmp

@@ -617,8 +617,24 @@ func (o *NKNOVH) apiAddNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 
 	//Multiple
 	tmp_ip = strings.TrimSpace(tmp_ip)
+	multiple_ipname := map[string]string{}
+
 	if ok = strings.Contains(tmp_ip, ","); ok {
-		ips.Multi = strings.Split(tmp_ip, ",")
+		// Check for the style: 0.0.0.0, NodeName
+		if ok = strings.Contains(tmp_ip, "\n"); ok {
+			re := regexp.MustCompile(`(?m)^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3})( *),( *)([A-Za-z0-9-_]+)( *)$`)
+			if ok = re.MatchString(tmp_ip); ok {
+				raw_nodes_ipname := re.FindAllStringSubmatch(tmp_ip, -1)
+				for i, _ := range raw_nodes_ipname {
+					multiple_ipname[raw_nodes_ipname[i][1]] = raw_nodes_ipname[i][7]
+					ips.Multi = append(ips.Multi, raw_nodes_ipname[i][1])
+				}
+			} else {
+				ips.Multi = strings.Split(tmp_ip, ",")
+			}
+		} else {
+			ips.Multi = strings.Split(tmp_ip, ",")
+		}
 	} else if ok = strings.Contains(tmp_ip, "\n"); ok {
 		ips.Multi = strings.Split(tmp_ip, "\n")
 	} else if ok = strings.Contains(tmp_ip, " "); ok {
@@ -663,9 +679,16 @@ func (o *NKNOVH) apiAddNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 	defer tx.Rollback()
 	var partially bool
 	var cnt_nodes_added int = 0
+	var mipname bool = len(multiple_ipname) > 0
+	var clearprefix string
 	for i,_ := range ips.MultiIP {
-		clearprefix := fmt.Sprintf("%s%d", prefix, nodes_count+i)
-		if err, status := InsertNode(c.HashId, clearprefix, ips.MultiIP[i].String(), tx); err != nil {
+		ipstring := ips.MultiIP[i].String()
+		if mipname {
+			clearprefix = multiple_ipname[ipstring]
+		} else {
+			clearprefix = fmt.Sprintf("%s%d", prefix, nodes_count+i)
+		}
+		if err, status := InsertNode(c.HashId, clearprefix, ipstring, tx); err != nil {
 			o.log.Syslog("InsertNode returned err:" + err.Error(), "sql")
 			return o.WsError(q, 1)
 		} else {
