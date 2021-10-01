@@ -1511,7 +1511,8 @@ func (c *CLIENT) Init() {
 	c.NodesSummary = map[string]map[string]float64{}
 	c.AutoUpdaterStartCh = make(chan bool)
 	c.AutoUpdaterStopCh = make(chan bool)
-
+	c.PingPongStopCh = make(chan bool)
+	
 	c.apiMethods = map[string]func(*WSReply) interface{}{}
 	c.apiMethods["auth"] = c.apiAuth
 	c.apiMethods["logout"] = c.apiLogout

@@ -316,6 +316,8 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 		o.log.Syslog("bad \"Upgrade\" header", "wshttp")
 		return
 	}
+	conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+	conn.SetWriteDeadline(time.Now().Add(time.Second * 30))
 	go func() {
 		c := o.WsClientCreate(conn)
 		defer o.WsClientClose(c)
@@ -333,6 +335,16 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 			msg, _, err := wsutil.ReadClientData(conn)
 			if err != nil {
 				o.log.Syslog(err.Error(), "wshttp")
+				return
+			}
+			conn.SetWriteDeadline(time.Now().Add(time.Second * 30))
+			// Browsers does not support ping/pong frames
+			// Use opText for ping (ping = 1, pong = 2)
+			if msg[0] == 49 {
+				if err := o.WritePongWs(c); err == nil {
+					conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+					continue
+				}
 				return
 			}
 			o.log.Syslog("WS Request from " + c.Ip + "; Message: " + string(msg), "wshttp")
@@ -530,6 +542,12 @@ func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 	return nil
 }
 
+func (o *NKNOVH) WritePongWs(c *CLIENT) (err error) {
+	if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, []byte("2")); err != nil {
+		return
+	}
+	return
+}
 
 func (o *NKNOVH) WriteJsonWs(data *WSReply, c *CLIENT) error {
 	var b = make([]byte, 0)

@@ -30,6 +30,7 @@ type CLIENT struct {
 	W *xwasmapi.Xwasmapi
 	ws *js.Value
 	mux *Mutexes
+	PingPongStopCh chan bool
 	AutoUpdaterIsStarted bool
 	AutoUpdaterStartCh chan bool
 	AutoUpdaterStopCh chan bool

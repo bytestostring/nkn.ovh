@@ -23,6 +23,8 @@ type WSReply struct {
 
 func (c *CLIENT) WsOnOpen() {
 	f := js.FuncOf(func(_ js.Value, _ []js.Value) interface{} {
+		go c.WsPingPong()
+
 		if c.Hash != "" {
 			c.SetLanguage("view_src", "")
 			c.WsAuth()
@@ -41,6 +43,20 @@ func (c *CLIENT) WsOnOpen() {
 	c.ws.Set("onopen", f)
 	fmt.Println("WebSocket onopen registered")
 	return
+}
+
+func (c *CLIENT) WsPingPong() {
+	fmt.Println("Starting WsPingPong")
+	ping_ticker := time.NewTicker(1 * time.Millisecond)
+	for {
+		select {
+		case <-c.PingPongStopCh:
+			return
+		case <-ping_ticker.C:
+			ping_ticker.Reset(15 * time.Second)
+			go c.ws.Call("send", "1")
+		}
+	}
 }
 
 func (c *CLIENT) SetLanguage(view string, locale string) {
@@ -183,6 +199,7 @@ func (c *CLIENT) WsOnClose() {
 
 	f := js.FuncOf(func(_ js.Value, _ []js.Value) interface{} {
 		go func() {
+			c.PingPongStopCh <- true
 			c.mux.AutoUpdater.Lock()
 			if c.AutoUpdaterIsStarted {
 				c.AutoUpdaterStopCh <- true
@@ -218,6 +235,11 @@ func (c *CLIENT) WsOnClose() {
 func (c *CLIENT) WsOnMessage() {
 	f := js.FuncOf(func(_ js.Value, y []js.Value) interface{} {
 		inJson := []byte(y[0].Get("data").String())
+
+		// It is pong
+		if inJson[0] == 50 {
+			return nil
+		}
 		data := new(WSReply)
 		if err := json.Unmarshal(inJson, data); err != nil {
 			fmt.Println(err.Error())
