@@ -338,7 +338,7 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 				return
 			}
 			conn.SetWriteDeadline(time.Now().Add(time.Second * 30))
-			// Browsers does not support ping/pong frames
+			// Browsers do not support ping/pong frames
 			// Use opText for ping (ping = 1, pong = 2)
 			if msg[0] == 49 {
 				if err := o.WritePongWs(c); err == nil {
@@ -543,7 +543,7 @@ func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 }
 
 func (o *NKNOVH) WritePongWs(c *CLIENT) (err error) {
-	if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, []byte("2")); err != nil {
+	if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, []byte{50}); err != nil {
 		return
 	}
 	return
