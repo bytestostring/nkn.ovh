@@ -14,6 +14,7 @@ import (
 		"strconv"
 		"errors"
 		"time"
+		"os"
 		)
 
 
@@ -334,6 +335,14 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 		for {
 			msg, _, err := wsutil.ReadClientData(conn)
 			if err != nil {
+				if os.IsTimeout(err) {
+					conn.SetReadDeadline(time.Now().Add(time.Second * 2))
+					conn.SetWriteDeadline(time.Now().Add(time.Second * 2))
+					if err = o.WritePingWs(c); err != nil {
+						return
+					}
+					continue
+				}
 				o.log.Syslog(err.Error(), "wshttp")
 				return
 			}
@@ -346,6 +355,9 @@ func (o *NKNOVH) WsPolling(w http.ResponseWriter, r *http.Request, _ httprouter.
 					continue
 				}
 				return
+			} else if msg[0] == 50 {
+				conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+				continue
 			}
 			o.log.Syslog("WS Request from " + c.Ip + "; Message: " + string(msg), "wshttp")
 
@@ -544,6 +556,13 @@ func (o *NKNOVH) WriteJson(data *WSReply, w http.ResponseWriter) error {
 
 func (o *NKNOVH) WritePongWs(c *CLIENT) (err error) {
 	if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, []byte{50}); err != nil {
+		return
+	}
+	return
+}
+
+func (o *NKNOVH) WritePingWs(c *CLIENT) (err error) {
+	if err = wsutil.WriteServerMessage(c.WsConnection, ws.OpText, []byte{49}); err != nil {
 		return
 	}
 	return

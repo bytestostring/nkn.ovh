@@ -239,6 +239,10 @@ func (c *CLIENT) WsOnMessage() {
 		// It is pong
 		if inJson[0] == 50 {
 			return nil
+		// It is ping
+		} else if inJson[0] == 49 {
+			c.ws.Call("send", "2")
+			return nil
 		}
 		data := new(WSReply)
 		if err := json.Unmarshal(inJson, data); err != nil {
