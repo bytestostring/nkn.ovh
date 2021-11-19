@@ -280,8 +280,8 @@ func (o *NKNOVH) apiSaveSettings(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 				return o.WsError(q, 1)
 			}
 		} else {
-			db_wallets := make([]string, 0, 3)
-			db_wallets_id := make([]int, 0, 3)
+			db_wallets := make([]string, 0, wallets_limit)
+			db_wallets_id := make([]int, 0, wallets_limit)
 			rows, err := o.sql.stmt["main"]["WebGetMyWallets"].Query(c.HashId)
 			if err != nil {
 				return o.WsError(q, 1)
