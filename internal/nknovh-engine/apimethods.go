@@ -999,6 +999,7 @@ func (o *NKNOVH) apiMyNodes(q *WSQuery, c *CLIENT) (err error, r WSReply) {
 		o.log.Syslog("Can't Prepare sqlHistory: "+errx.Error(), "sql")
 		return o.WsError(q, 1)
 	}
+	defer stmt.Close()
 	norows = true
 	rows3, errx := stmt.Query(inSx...)
 	if errx != nil {
