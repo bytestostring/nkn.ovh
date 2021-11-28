@@ -917,7 +917,7 @@ func (c *CLIENT) SortAndParseNodes() {
 			status = fmt.Sprintf("%s %s", status, link_reference)
 			node_class = "warning_out"
 			sumOffline++
-		case "PRUNING DB", "GENERATION ID", "WAIT_FOR_SYNCING", "SYNC_STARTED", "SYNC_FINISHED":
+		case "PRUNING DB", "GENERATING ID", "WAIT_FOR_SYNCING", "SYNC_STARTED", "SYNC_FINISHED":
 			node_class = "warning"
 			sumOffline++
 		default:
