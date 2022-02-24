@@ -80,5 +80,6 @@ type NodeNeighbor struct {
 		Tlswebsocketdomain string `json:"tlsWebsocketDomain"`
 		Tlswebsocketport   int    `json:"tlsWebsocketPort"`
 		Websocketport      int    `json:"websocketPort"`
+		ConnTime           int    `json:"connTime"`
 	} `json: "result"`
 }
