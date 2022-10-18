@@ -10,7 +10,6 @@
 	<p>Если Вы хотите помочь проекту:</p>
 {{end}}
 	<p>NKN Mainnet address: <a href="https://explorer.nkn.org/detail/address/NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE/1" rel="noreferrer" target="_blank">NKNZKKF9u1MUQWnK272YoFiMTn5tjZh7uRQE</a></p>
-	<p>Ethereum address: <a href="https://etherscan.io/address/0xD5305428401C9295401c89ff14CB8f6588A34F20" rel="noreferrer" target="blank">0xD5305428401C9295401c89ff14CB8f6588A34F20</a></p>
 </div>
 </div>
 </div>
