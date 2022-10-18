@@ -1,6 +1,10 @@
 # nkn.ovh
 nkn.ovh - Open source monitoring for NKN nodes
 
+## Notice
+
+Be careful! nkn.ovh is no longer the official domain of the project!
+
 ## API
 
 [Documentation](../v1.1/API.md)
