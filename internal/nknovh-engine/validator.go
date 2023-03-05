@@ -16,8 +16,8 @@ func buildValidator() *Validator {
 	v.Expr["Id"] = regexp.MustCompile(`^([A-Za-z0-9]{64})$`)
 	v.Expr["PublicKey"] = regexp.MustCompile(`^([A-Za-z0-9]{64})$`)
 	v.Expr["SyncState"] = regexp.MustCompile(`^WAIT_FOR_SYNCING|SYNC_STARTED|SYNC_FINISHED|PERSIST_FINISHED$`)
-	v.Expr["Tlsjsonrpcdomain"] = regexp.MustCompile(`^[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}\.ipv4\.nknlabs\.io$`)
-	v.Expr["Tlswebsocketdomain"] = regexp.MustCompile(`^[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}\.ipv4\.nknlabs\.io$`)
+	v.Expr["Tlsjsonrpcdomain"] = regexp.MustCompile(`^[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}\.ipv4\.(?:nknlabs|staticdns([0-9][0-9]{0,2}|1000))\.io$`)
+	v.Expr["Tlswebsocketdomain"] = regexp.MustCompile(`^[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}-[0-9]{1,3}\.ipv4\.(?:nknlabs|staticdns([0-9][0-9]{0,2}|1000))\.io$`)
 	v.Expr["Version"] = regexp.MustCompile(`^([0-9\.A-Za-z\-]*)$`)
 	return v
 }

@@ -99,7 +99,7 @@
 <div class="td" style=""><span id="sum-NetworkControl">N/A</span></div>
 </div>
 <div class="tr">
-<div class="td">{{ .LANG.NodesTables.NST_client.sum_relays }}</div>
+<div class="td">{{ .LANG.NodesTables.NST_client.sum_relays }}:</div>
 <div class="td"><span id="sum-AllRelays">N/A</span></div>
 </div>
 <div class="tr">
@@ -115,7 +115,7 @@
 <div class="td"><span id="sum-waitNKNMonth">N/A</span></div>
 </div>
 <div class="tr">
-<div class="td">{{ .LANG.NodesTables.NST_client.average_rewards_interval }} :</div>
+<div class="td">{{ .LANG.NodesTables.NST_client.average_rewards_interval }}:</div>
 <div class="td"><span id="sum-waitOneProposal">N/A</span></div>
 </div>
 
@@ -224,6 +224,7 @@ var nodelookup_view  = `<div class="lookup_neighbor_main"><div style="float: lef
 		<div class="tr"><div class="td">Height:</div><div class="td">%[3]v</div></div>
 		<div class="tr"><div class="td">ID:</div><div class="td">%[4]v</div></div>
 		<div class="tr"><div class="td">Jsonrpcport:</div><div class="td">%[5]v</div></div>
+		<div class="tr"><div class="td">ledgerMode:</div><div class="td">%[26]v</div></div>
 		<div class="tr"><div class="td">ProposalSubmitted:</div><div class="td">%[6]v</div></div>
 		<div class="tr"><div class="td">ProtocolVersion:</div><div class="td">%[7]v</div></div>
 		<div class="tr"><div class="td">PublicKey:</div><div class="td">%[8]v</div></div>

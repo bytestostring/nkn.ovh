@@ -54,22 +54,22 @@
 	"nodes_tables": {
 		"NST": {
 		  "title": "NKN 网络",
-		  "sum_relays": "总体表现",
-		  "sum_nodes": "总节点数",
+		  "sum_relays": "全网总体性能",
+		  "sum_nodes": "全网总节点数",
 		  "sum_persist": "PERSIST_FINISHED 节点",
-		  "sum_average_relays": "节点平均性能",
-		  "sum_average_uptime": "节点平均运行时间",
+		  "sum_average_relays": "全网节点平均性能",
+		  "sum_average_uptime": "全网节点平均运行时间",
 		  "last_update": "最后更新时间"
 		},
 		"NST_client": {
 		  "title": "你的节点",
 		  "sum_nodes": "节点",
-		  "network_control": "你的节点占比",
-		  "sum_relays": "总体表现",
-		  "sum_average_relays": "平均新能",
-		  "waitproposal": "平均奖励区块间隔",
+		  "network_control": "你的节点性能占比",
+		  "sum_relays": "总体性能",
+		  "sum_average_relays": "平均性能",
+		  "waitproposal": "平均奖励区块间隔时间",
 		  "waitproposal_nkn": "预计报酬",
-		  "average_rewards_interval": "平均奖励间隔"
+		  "average_rewards_interval": "平均奖励间隔时间"
 		},
 		"Other": {
 		  "title": "你的节点信息",
