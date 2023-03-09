@@ -182,6 +182,7 @@ type NodeState struct {
 		Height             int    `json:"height"`
 		ID                 string `json:"id"`
 		Jsonrpcport        int    `json:"jsonRpcPort"`
+		LedgerMode         string `json:"ledgerMode"`
 		ProposalSubmitted  int    `json:"proposalSubmitted"`
 		ProtocolVersion    int    `json:"protocolVersion"`
 		PublicKey          string `json:"publicKey"`

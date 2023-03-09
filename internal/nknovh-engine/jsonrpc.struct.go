@@ -45,6 +45,7 @@ type NodeState struct {
 		Height             int    `json:"height"`
 		ID                 string `json:"id"`
 		Jsonrpcport        int    `json:"jsonRpcPort"`
+		LedgerMode         string `json:"ledgerMode"`
 		ProposalSubmitted  int    `json:"proposalSubmitted"`
 		ProtocolVersion    int    `json:"protocolVersion"`
 		PublicKey          string `json:"publicKey"`
@@ -71,6 +72,7 @@ type NodeNeighbor struct {
 		ID                 string `json:"id"`
 		Isoutbound         bool   `json:"isOutbound"`
 		Jsonrpcport        int    `json:"jsonRpcPort"`
+		LedgerMode         string `json:"ledgerMode"`
 		Protocolversion    int    `json:"protocolVersion"`
 		PublicKey          string `json:"publicKey"`
 		RoundTripTime      int    `json:"roundTripTime"`
