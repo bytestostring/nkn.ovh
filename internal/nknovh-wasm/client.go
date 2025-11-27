@@ -1,37 +1,38 @@
 package nknovh_wasm
 
 import (
-	"fmt"
-	"syscall/js"
-	"xwasmapi"
-	"sort"
 	"bytes"
-	"time"
-	"net"
-	"errors"
 	"encoding/json"
-	"text/template"
-	"sync"
+	"errors"
+	"fmt"
 	"math"
+	"net"
 	"regexp"
-	"strings"
+	"sort"
 	"strconv"
+	"strings"
+	"sync"
+	"syscall/js"
+	"text/template"
+	"time"
+	"xwasmapi"
+
 	"github.com/fvbommel/sortorder"
 )
 
-	//Some html templates
-	var wallabel string = `<div style="margin: 20px 0 0 0;"><p>%[1]s %[2]d:</p><input id="setwal-%[2]d" type="text" class="inputtext" value="%[4]s" placeholder="%[3]s"></div>`
-	var link_reference string = `<a href="javascript:void(0);" onclick="showModal('reference')">[?]</a>`
-	var wallet_div string = `<div class="wallet %[1]s" id="wallet-%[2]d">
+// Some html templates
+var wallabel string = `<div style="margin: 20px 0 0 0;"><p>%[1]s %[2]d:</p><input id="setwal-%[2]d" type="text" class="inputtext" value="%[4]s" placeholder="%[3]s"></div>`
+var link_reference string = `<a href="javascript:void(0);" onclick="showModal('reference')">[?]</a>`
+var wallet_div string = `<div class="wallet %[1]s" id="wallet-%[2]d">
 	<p style="font-weight: bold">%[3]v %[4]v</p>
 	<p><a href="https://explorer.nkn.org/detail/address/%[5]v" rel="noreferrer" target="_blank" title="Explorer">%[5]v</a></p>
 	<p>%[6]s</p>
 	</div>`
-	var node_template string = `<div class="td"><input type="checkbox" id="controlNode-%[1]v" name="controlNode-%[1]v" value="%[1]v"></div><div class="td nodeName">%[2]v</div><div class="td op"><a href="javascript:void(0)" onclick="checkOnline(%[1]v)" title="Check the node online"><img src="/static/images/lookup.png" alt="Check the node online"></a></div><div class="td nodeIP">%[3]v</div><div class="td nodeSyncState">%[4]v</div><div class="td nodeProposal">%[5]v</div><div class="td nodeHeight">%[6]v</div><div class="td nodeUptime">%[7]v</div><div class="td nodeRelays">%[8]v</div><div class="td nodeRelays10">%[9]v</div><div class="td nodeRelays60">%[10]v</div><div class="td nodeVersion">%[11]v</div><div class="td nodeUpdated">%[12]v</div>`
-	var arrow_asc string = "<span>&#9660;</span>"
-	var arrow_desc string = "<span>&#9650;</span>"
-	var nodes_sumstat string = `<div class="tr" id="sum_tr"><div class="td"></div><div class="td">%s</div><div class="td"></div><div class="td">*</div><div class="td">*</div><div class="td">%.f</div><div class="td">*</div><div class="td">%.2f %s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">*</div><div class="td">*</div></div>`
-	var nodelookupbody string = `<div id="nodeLookupLoading-%[1]v"><img src="/static/images/loading_checker.gif" alt="Loading"></div><div id="nodeLookupErr-%[1]v"></div><div id="nodeLookupInfo-%[1]v"></div>`
+var node_template string = `<div class="td"><input type="checkbox" id="controlNode-%[1]v" name="controlNode-%[1]v" value="%[1]v"></div><div class="td nodeName">%[2]v</div><div class="td op"><a href="javascript:void(0)" onclick="checkOnline(%[1]v)" title="Check the node online"><img src="/static/images/lookup.png" alt="Check the node online"></a></div><div class="td nodeIP">%[3]v</div><div class="td nodeSyncState">%[4]v</div><div class="td nodeProposal">%[5]v</div><div class="td nodeHeight">%[6]v</div><div class="td nodeUptime">%[7]v</div><div class="td nodeRelays">%[8]v</div><div class="td nodeRelays10">%[9]v</div><div class="td nodeRelays60">%[10]v</div><div class="td nodeVersion">%[11]v</div><div class="td nodeUpdated">%[12]v</div>`
+var arrow_asc string = "<span>&#9660;</span>"
+var arrow_desc string = "<span>&#9650;</span>"
+var nodes_sumstat string = `<div class="tr" id="sum_tr"><div class="td"></div><div class="td">%s</div><div class="td"></div><div class="td">*</div><div class="td">*</div><div class="td">%.f</div><div class="td">*</div><div class="td">%.2f %s</div><div class="td">%s</div><div class="td">%s</div><div class="td">%s</div><div class="td">*</div><div class="td">*</div></div>`
+var nodelookupbody string = `<div id="nodeLookupLoading-%[1]v"><img src="/static/images/loading_checker.gif" alt="Loading"></div><div id="nodeLookupErr-%[1]v"></div><div id="nodeLookupInfo-%[1]v"></div>`
 
 func (c *CLIENT) CheckVersion(actual string) bool {
 	doc := js.Global().Get("document")
@@ -42,15 +43,15 @@ func (c *CLIENT) CheckVersion(actual string) bool {
 			fmt.Println("div#site_version is not Truthy")
 			return true
 		}
-		div.Set("textContent", "Version: " + actual)
+		div.Set("textContent", "Version: "+actual)
 		div.Get("style").Set("display", "inline-block")
 		return true
 	}
 	if c.Version != actual {
 		html := js.Global().Get("version_src").String()
 		data := map[string]interface{}{
-			"LANG": c.LANG,
-			"CurVersion": c.Version,
+			"LANG":        c.LANG,
+			"CurVersion":  c.Version,
 			"LastVersion": actual,
 		}
 		if err, s := c.handlingTemplate(&html, &data); err != nil {
@@ -95,7 +96,6 @@ func (c *CLIENT) ToggleCheckBox() {
 	}
 	return
 }
-
 
 func (c *CLIENT) AddWalletLabels(add_field bool) {
 	var n int = 1
@@ -167,7 +167,7 @@ func (c *CLIENT) SwitchTab(showTab string) {
 
 	colorTab := func(sel string) {
 		concat := sel + showTab
-		sw := doc.Call("querySelectorAll", "span[id^='"+ sel +"']")
+		sw := doc.Call("querySelectorAll", "span[id^='"+sel+"']")
 		if !sw.Truthy() {
 			return
 		}
@@ -185,30 +185,30 @@ func (c *CLIENT) SwitchTab(showTab string) {
 
 	ShowHideContent := func(m map[string]string) {
 		for key, val := range m {
-				if key == showTab {
-					c.W.ShowById(val)
-				} else {
-					c.W.HideById(val)
-				}
+			if key == showTab {
+				c.W.ShowById(val)
+			} else {
+				c.W.HideById(val)
 			}
+		}
 	}
 
 	switch x := showTab; x {
-		case "single","multiple":
-			m := map[string]string{}
-			m["single"] = "addNodesSingle"
-			m["multiple"] = "addNodesMultiple"
+	case "single", "multiple":
+		m := map[string]string{}
+		m["single"] = "addNodesSingle"
+		m["multiple"] = "addNodesMultiple"
 
-			colorTab("switch-nodes-")
-			ShowHideContent(m)
+		colorTab("switch-nodes-")
+		ShowHideContent(m)
 		break
-		case "wallets", "notifications":
-			m := map[string]string{}
-			m["wallets"] = "settingsWallets"
-			m["notifications"] = "settingsNotifications"
+	case "wallets", "notifications":
+		m := map[string]string{}
+		m["wallets"] = "settingsWallets"
+		m["notifications"] = "settingsNotifications"
 
-			colorTab("switch-settings-")
-			ShowHideContent(m)
+		colorTab("switch-settings-")
+		ShowHideContent(m)
 		break
 	}
 }
@@ -299,13 +299,13 @@ func (c *CLIENT) ParseAll() (resp bool) {
 			c.GenErr(c.Nodes.ErrMessage, "default", x)
 		} else {
 			switch x := c.Nodes.Code; x {
-				case 0:
-					c.W.HideById("nodes_nf")
-					c.PreSortNodes()
-					c.SortAndParseNodes()
+			case 0:
+				c.W.HideById("nodes_nf")
+				c.PreSortNodes()
+				c.SortAndParseNodes()
 				break
-				case 3:
-					c.W.ShowById("nodes_nf")
+			case 3:
+				c.W.ShowById("nodes_nf")
 				break
 			}
 		}
@@ -371,21 +371,21 @@ func (c *CLIENT) ParseFullstack(f *GetFullstack) {
 		c.GenErr(f.Value.Nodes.ErrMessage, "default", x)
 	} else {
 		switch x := f.Value.Nodes.Code; x {
-			case 0:
-				c.W.HideById("nodes_nf")
-				c.Nodes = &f.Value.Nodes
-				c.PreSortNodes()
-				c.SortAndParseNodes()
+		case 0:
+			c.W.HideById("nodes_nf")
+			c.Nodes = &f.Value.Nodes
+			c.PreSortNodes()
+			c.SortAndParseNodes()
 			break
-			case 3:
-				c.W.ShowById("nodes_nf")
-				c.Nodes = &Nodes{}
+		case 3:
+			c.W.ShowById("nodes_nf")
+			c.Nodes = &Nodes{}
 			break
 		}
 	}
 	c.calcNodesSummary()
 	c.switchLoading(false)
-	return	
+	return
 }
 
 func (c *CLIENT) parseNetstatus() {
@@ -400,16 +400,16 @@ func (c *CLIENT) parseNetstatus() {
 	if n := x; n <= 3600/60 {
 		au = x
 		au_sense = c.LANG.SenseSeconds
-	} else if n := x/60; n <= 59 {
+	} else if n := x / 60; n <= 59 {
 		au = n
 		au_sense = c.LANG.SenseMinutes
-	} else if n := x/3600; n <= 24 {
+	} else if n := x / 3600; n <= 24 {
 		au = n
 		au_sense = c.LANG.SenseHours
-	} else if n := x/3600/24; n <= 365 {
+	} else if n := x / 3600 / 24; n <= 365 {
 		au = n
 		au_sense = c.LANG.SenseDays
-	} else if n := x/3600/24; n > 365 {
+	} else if n := x / 3600 / 24; n > 365 {
 		au = n
 		au_sense = c.LANG.SenseYears
 	}
@@ -422,8 +422,8 @@ func (c *CLIENT) parseNetstatus() {
 	lu := netstatus.Value.LatestUpdate + "+03:00"
 	//Fix timezone
 	time_layout := "2006-01-02 15:04:05Z07:00"
-	time_layout2 := "2006-01-02 / 15:04:05" 
-	t_now :=  time.Now()
+	time_layout2 := "2006-01-02 / 15:04:05"
+	t_now := time.Now()
 	t_zone, t_offset := t_now.Zone()
 	t_loc := time.FixedZone(t_zone, t_offset)
 	t, err := time.Parse(time_layout, lu)
@@ -448,7 +448,7 @@ func (c *CLIENT) parseNetstatus() {
 	doc.Call("getElementById", "ns-average_uptime").Set("textContent", averageUptime)
 	doc.Call("getElementById", "ns-average_uptime-sense").Set("textContent", au_sense)
 	doc.Call("getElementById", "ns-average_relays").Set("textContent", averageRelays)
-	doc.Call("getElementById", "ns-average_relays-sense").Set("textContent",c.LANG.SenseRelayh)
+	doc.Call("getElementById", "ns-average_relays-sense").Set("textContent", c.LANG.SenseRelayh)
 	doc.Call("getElementById", "ns-relays_per_hour").Set("textContent", relaysPerHour)
 	doc.Call("getElementById", "ns-relays_per_hour-sense").Set("textContent", c.LANG.SenseRelayh)
 	doc.Call("getElementById", "ns-latest_update").Set("textContent", latestUpdate)
@@ -459,7 +459,6 @@ func (c *CLIENT) parseNetstatus() {
 	c.W.ShowById("jNST")
 	return
 }
-
 
 func (c *CLIENT) GenErr(errtext string, section string, code int, id ...string) {
 	var endtext string
@@ -473,10 +472,10 @@ func (c *CLIENT) GenErr(errtext string, section string, code int, id ...string) 
 		elemid = id[0]
 	}
 	dom := js.Global().Get("document").Call("getElementById", elemid)
-		if !dom.Truthy() {
-			fmt.Println("No access to div#error")
-			return
-		}
+	if !dom.Truthy() {
+		fmt.Println("No access to div#error")
+		return
+	}
 	dom.Set("innerText", endtext)
 	dom.Get("style").Set("display", "block")
 	return
@@ -520,25 +519,24 @@ func (c *CLIENT) PreSortNodes(dom ...*js.Value) {
 	return
 }
 
-
 func (c *CLIENT) calcNodesSummary() {
 	c.mux.NodesSummary.Lock()
 	defer c.mux.NodesSummary.Unlock()
 	var (
-		r string
-		r10 string
-		r60 string
-		au float64
-		au_sense string
-		wop_sense string = c.LANG.SenseSeconds
-		mining_sense string
+		r                   string
+		r10                 string
+		r60                 string
+		au                  float64
+		au_sense            string
+		wop_sense           string = c.LANG.SenseSeconds
+		mining_sense        string
 		averageBlocksPerDay float64
-		controlPercentage float64
-		waitRewardMonth float64
-		waitRewardOne float64
-		wait_per_month float64
-		wait_per_month_usd float64
-		inactiveNodes int
+		controlPercentage   float64
+		waitRewardMonth     float64
+		waitRewardOne       float64
+		wait_per_month      float64
+		wait_per_month_usd  float64
+		inactiveNodes       int
 	)
 	if _, ok := c.NodesSummary["all"]; !ok {
 		return
@@ -569,16 +567,16 @@ func (c *CLIENT) calcNodesSummary() {
 	if n := x; n <= 3600/60 {
 		au = x
 		au_sense = c.LANG.SenseSeconds
-	} else if n := x/60; n <= 59 {
+	} else if n := x / 60; n <= 59 {
 		au = n
 		au_sense = c.LANG.SenseMinutes
-	} else if n := x/3600; n <= 24 {
+	} else if n := x / 3600; n <= 24 {
 		au = n
 		au_sense = c.LANG.SenseHours
-	} else if n := x/3600/24; n <= 365 {
+	} else if n := x / 3600 / 24; n <= 365 {
 		au = n
 		au_sense = c.LANG.SenseDays
-	} else if n := x/3600/24; n > 365 {
+	} else if n := x / 3600 / 24; n > 365 {
 		au = n
 		au_sense = c.LANG.SenseYears
 	}
@@ -589,16 +587,16 @@ func (c *CLIENT) calcNodesSummary() {
 	} else {
 		averageBlocksPerDay = x
 	}
-	controlPercentage = c.NodesSummary["client"]["RelaysPerHour"]/c.NodesSummary["all"]["RelaysPerHour"]*100
-	waitRewardMonth = averageBlocksPerDay*30/100*controlPercentage
+	controlPercentage = c.NodesSummary["client"]["RelaysPerHour"] / c.NodesSummary["all"]["RelaysPerHour"] * 100
+	waitRewardMonth = averageBlocksPerDay * 30 / 100 * controlPercentage
 	inactiveNodes = int(c.NodesSummary["client"]["Nodes"] - c.NodesSummary["client"]["ActiveNodes"])
 	if controlPercentage != 0 {
-		waitRewardOne = 1440/(averageBlocksPerDay/100*controlPercentage)/60
+		waitRewardOne = 1440 / (averageBlocksPerDay / 100 * controlPercentage) / 60
 		if waitRewardOne > 24 {
-			waitRewardOne = waitRewardOne/24
+			waitRewardOne = waitRewardOne / 24
 			wop_sense = c.LANG.SenseDays
 		} else if waitRewardOne < 1 {
-			waitRewardOne = waitRewardOne*60
+			waitRewardOne = waitRewardOne * 60
 			wop_sense = c.LANG.SenseMinutes
 		} else {
 			wop_sense = c.LANG.SenseHours
@@ -611,7 +609,7 @@ func (c *CLIENT) calcNodesSummary() {
 	}
 
 	doc := js.Global().Get("document")
-	wait_per_month = waitRewardMonth*11.09
+	wait_per_month = waitRewardMonth * 11.09
 	if c.Prices != nil {
 		wait_per_month_usd = wait_per_month * c.Prices.Value.Usd
 
@@ -672,183 +670,183 @@ func (c *CLIENT) calcNodesSummary() {
 func (c *CLIENT) SortAndParseNodes() {
 	c.mux.Nodes.Lock()
 	switch x := c.Sort; x {
-		case "t_name":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return !sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
-				})
-			}
+	case "t_name":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return !sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return sortorder.NaturalLess(c.Nodes.Value.List[i].Name, c.Nodes.Value.List[j].Name)
+			})
+		}
 		break
-		case "t_status":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].SyncState > c.Nodes.Value.List[j].SyncState
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-				return c.Nodes.Value.List[i].SyncState < c.Nodes.Value.List[j].SyncState 
-				})
-			}
+	case "t_status":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].SyncState > c.Nodes.Value.List[j].SyncState
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].SyncState < c.Nodes.Value.List[j].SyncState
+			})
+		}
 		break
-		case "t_uptime":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Uptime > c.Nodes.Value.List[j].Uptime 
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-				return c.Nodes.Value.List[i].Uptime < c.Nodes.Value.List[j].Uptime 
-				})
-			}
+	case "t_uptime":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Uptime > c.Nodes.Value.List[j].Uptime
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Uptime < c.Nodes.Value.List[j].Uptime
+			})
+		}
 		break
-		case "t_ip":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return bytes.Compare(net.ParseIP(c.Nodes.Value.List[i].IP), net.ParseIP(c.Nodes.Value.List[j].IP)) > 0
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return bytes.Compare(net.ParseIP(c.Nodes.Value.List[j].IP), net.ParseIP(c.Nodes.Value.List[i].IP)) > 0
-				})
-			}
+	case "t_ip":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return bytes.Compare(net.ParseIP(c.Nodes.Value.List[i].IP), net.ParseIP(c.Nodes.Value.List[j].IP)) > 0
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return bytes.Compare(net.ParseIP(c.Nodes.Value.List[j].IP), net.ParseIP(c.Nodes.Value.List[i].IP)) > 0
+			})
+		}
 		break
-		case "t_proposal":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].ProposalSubmitted > c.Nodes.Value.List[j].ProposalSubmitted
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].ProposalSubmitted < c.Nodes.Value.List[j].ProposalSubmitted
-				})
-			}
-		break	
-		case "t_height":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Height > c.Nodes.Value.List[j].Height
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Height < c.Nodes.Value.List[j].Height
-				})
-			}
-		break	
-		case "t_relay":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour > c.Nodes.Value.List[j].RelaysPerHour
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour < c.Nodes.Value.List[j].RelaysPerHour
-				})
-			}
+	case "t_proposal":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].ProposalSubmitted > c.Nodes.Value.List[j].ProposalSubmitted
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].ProposalSubmitted < c.Nodes.Value.List[j].ProposalSubmitted
+			})
+		}
 		break
-		case "t_relay10":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour10 > c.Nodes.Value.List[j].RelaysPerHour10
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour10 < c.Nodes.Value.List[j].RelaysPerHour10
-				})
-			}
+	case "t_height":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Height > c.Nodes.Value.List[j].Height
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Height < c.Nodes.Value.List[j].Height
+			})
+		}
 		break
-		case "t_relay60":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour60 > c.Nodes.Value.List[j].RelaysPerHour60
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].RelaysPerHour60 < c.Nodes.Value.List[j].RelaysPerHour60
-				})
-			}
+	case "t_relay":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour > c.Nodes.Value.List[j].RelaysPerHour
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour < c.Nodes.Value.List[j].RelaysPerHour
+			})
+		}
 		break
-		case "t_version":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Version > c.Nodes.Value.List[j].Version
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					return c.Nodes.Value.List[i].Version < c.Nodes.Value.List[j].Version
-				})
-			}
+	case "t_relay10":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour10 > c.Nodes.Value.List[j].RelaysPerHour10
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour10 < c.Nodes.Value.List[j].RelaysPerHour10
+			})
+		}
 		break
-		case "t_latestup":
-			if c.Sort_type == "ASC" {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					lay := "2006-01-02 15:04:05"
-					t1, err := time.Parse(lay, c.Nodes.Value.List[i].LatestUpdate)
-					if err != nil {
-						fmt.Println(err)
-					}
-					u1 := t1.Unix()
-					t2, err := time.Parse(lay, c.Nodes.Value.List[j].LatestUpdate)
-					if err != nil {
-						fmt.Println(err)
-					}
-					u2 := t2.Unix()
-					return u1 < u2
-				})
-			} else {
-				sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
-					lay := "2006-01-02 15:04:05"
-					t1, err := time.Parse(lay, c.Nodes.Value.List[i].LatestUpdate)
-					if err != nil {
-						fmt.Println(err)
-					}
-					u1 := t1.Unix()
-					t2, err := time.Parse(lay, c.Nodes.Value.List[j].LatestUpdate)
-					if err != nil {
-						fmt.Println(err)
-					}
-					u2 := t2.Unix()
-					return u1 > u2
-				})
-			}
+	case "t_relay60":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour60 > c.Nodes.Value.List[j].RelaysPerHour60
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].RelaysPerHour60 < c.Nodes.Value.List[j].RelaysPerHour60
+			})
+		}
+		break
+	case "t_version":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Version > c.Nodes.Value.List[j].Version
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				return c.Nodes.Value.List[i].Version < c.Nodes.Value.List[j].Version
+			})
+		}
+		break
+	case "t_latestup":
+		if c.Sort_type == "ASC" {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				lay := "2006-01-02 15:04:05"
+				t1, err := time.Parse(lay, c.Nodes.Value.List[i].LatestUpdate)
+				if err != nil {
+					fmt.Println(err)
+				}
+				u1 := t1.Unix()
+				t2, err := time.Parse(lay, c.Nodes.Value.List[j].LatestUpdate)
+				if err != nil {
+					fmt.Println(err)
+				}
+				u2 := t2.Unix()
+				return u1 < u2
+			})
+		} else {
+			sort.SliceStable(c.Nodes.Value.List, func(i, j int) bool {
+				lay := "2006-01-02 15:04:05"
+				t1, err := time.Parse(lay, c.Nodes.Value.List[i].LatestUpdate)
+				if err != nil {
+					fmt.Println(err)
+				}
+				u1 := t1.Unix()
+				t2, err := time.Parse(lay, c.Nodes.Value.List[j].LatestUpdate)
+				if err != nil {
+					fmt.Println(err)
+				}
+				u2 := t2.Unix()
+				return u1 > u2
+			})
+		}
 		break
 	}
 	var (
-		sumUptime int
-		sumRelaysPerHour int
+		sumUptime          int
+		sumRelaysPerHour   int
 		sumRelaysPerHour10 int
 		sumRelaysPerHour60 int
-		averageRelays int
-		averageUptime int
-		sumOffline int
-		sumProposal int
-		sumActiveNodes int
-		sumNodes int
-		RelaysViewK string
-		RelaysViewK10 string
-		RelaysViewK60 string
-		UptimeView string
-		VersionView string
-		UpdateView string
+		averageRelays      int
+		averageUptime      int
+		sumOffline         int
+		sumProposal        int
+		sumActiveNodes     int
+		sumNodes           int
+		RelaysViewK        string
+		RelaysViewK10      string
+		RelaysViewK60      string
+		UptimeView         string
+		VersionView        string
+		UpdateView         string
 
-		r_uptime float64
-		r_relays float64
-		r_relays10 float64
-		r_relays60 float64
-		r_version string
-		r_syncstate string
-		r_nodeid int
-		r_name string
-		r_ip string
-		r_proposal int
-		r_height int
-		r_update string
-		r_err int
-		status string
-		node_class string
+		r_uptime       float64
+		r_relays       float64
+		r_relays10     float64
+		r_relays60     float64
+		r_version      string
+		r_syncstate    string
+		r_nodeid       int
+		r_name         string
+		r_ip           string
+		r_proposal     int
+		r_height       int
+		r_update       string
+		r_err          int
+		status         string
+		node_class     string
 		waiting_status string
 	)
 
@@ -870,8 +868,8 @@ func (c *CLIENT) SortAndParseNodes() {
 
 	//Fix timezone
 	time_layout := "2006-01-02 15:04:05Z0700"
-	time_layout2 := "2006-01-02 / 15:04:05" 
-	t_now :=  time.Now()
+	time_layout2 := "2006-01-02 / 15:04:05"
+	t_now := time.Now()
 	t_zone, t_offset := t_now.Zone()
 	t_loc := time.FixedZone(t_zone, t_offset)
 
@@ -881,9 +879,9 @@ func (c *CLIENT) SortAndParseNodes() {
 	var iteration_time time.Duration
 	iteration_start = time.Now()
 
-	startShow := c.EntriesPerPage*c.CurrentPage-c.EntriesPerPage+1
-	stopShow := startShow+c.EntriesPerPage
-	for _, val := range nodes {	
+	startShow := c.EntriesPerPage*c.CurrentPage - c.EntriesPerPage + 1
+	stopShow := startShow + c.EntriesPerPage
+	for _, val := range nodes {
 		sumNodes++
 
 		r_nodeid = int(val["NodeId"].(float64))
@@ -911,7 +909,7 @@ func (c *CLIENT) SortAndParseNodes() {
 		case "PERSIST_FINISHED":
 			node_class = "mining"
 			sumActiveNodes++
-		break
+			break
 		case "_OUT_":
 			status = "Out of NKN Network"
 			status = fmt.Sprintf("%s %s", status, link_reference)
@@ -925,7 +923,7 @@ func (c *CLIENT) SortAndParseNodes() {
 		}
 
 		switch x := r_err; x {
-		case 0,3:
+		case 0, 3:
 			r_uptime = val["Uptime"].(float64)
 			r_relays = val["RelaysPerHour"].(float64)
 			r_relays10 = val["RelaysPerHour10"].(float64)
@@ -972,17 +970,17 @@ func (c *CLIENT) SortAndParseNodes() {
 			} else {
 				UptimeView = fmt.Sprintf("%ds", int(r_uptime))
 			}
-		break
+			break
 		case 1:
 			status = "OFFLINE"
 			node_class = "error"
 			sumOffline++
-		break
+			break
 		case 2:
 			status = waiting_status
 			node_class = "waiting"
 			sumOffline++
-		break
+			break
 		}
 		div_id := fmt.Sprintf("Node-%v", r_nodeid)
 
@@ -1035,8 +1033,8 @@ func (c *CLIENT) SortAndParseNodes() {
 			div = fmt.Sprintf(node_template, r_nodeid, r_name, r_ip, status, "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", "N/A", UpdateView)
 		}
 		dom_div := doc.Call("createElement", "div")
-		dom_div.Set("id", div_id) 
-		dom_div.Set("className", "tr " + node_class)
+		dom_div.Set("id", div_id)
+		dom_div.Set("className", "tr "+node_class)
 		dom_div.Set("innerHTML", div)
 		if !(sumNodes >= startShow && sumNodes < stopShow) {
 			dom_div.Get("style").Set("display", "none")
@@ -1052,8 +1050,8 @@ func (c *CLIENT) SortAndParseNodes() {
 	if sumActiveNodes > 0 {
 		activeNodes := sumNodes - sumOffline
 		if (sumRelaysPerHour > 0) && activeNodes > 0 {
-			averageRelays = sumRelaysPerHour/activeNodes
-			averageUptime = sumUptime/activeNodes
+			averageRelays = sumRelaysPerHour / activeNodes
+			averageUptime = sumUptime / activeNodes
 		}
 	}
 	c.mux.NodesSummary.Lock()
@@ -1082,7 +1080,7 @@ func (c *CLIENT) SetEntriesPerPage(num int) {
 		nodes_count = 0
 	}
 	c.mux.Nodes.Unlock()
-	if x := float64(nodes_count)/float64(c.EntriesPerPage); x < float64(c.CurrentPage) && x != 0 {
+	if x := float64(nodes_count) / float64(c.EntriesPerPage); x < float64(c.CurrentPage) && x != 0 {
 		c.CurrentPage = int(math.Ceil(x))
 	}
 	c.SortTableLite()
@@ -1100,8 +1098,8 @@ func (c *CLIENT) SetPage(num int) {
 func (c *CLIENT) SortTableLite() {
 	doc := js.Global().Get("document")
 	dom_nt := doc.Call("getElementById", "nodes_table")
-	startShow := c.EntriesPerPage*c.CurrentPage-c.EntriesPerPage+1
-	stopShow := startShow+c.EntriesPerPage
+	startShow := c.EntriesPerPage*c.CurrentPage - c.EntriesPerPage + 1
+	stopShow := startShow + c.EntriesPerPage
 	childs := dom_nt.Get("children")
 	l := childs.Get("length").Int()
 	var nodes_count int
@@ -1189,7 +1187,7 @@ func (c *CLIENT) ReloadTableSettings() {
 		nodes_count = 0
 	}
 	c.mux.Nodes.Unlock()
-	if x := float64(nodes_count)/float64(c.EntriesPerPage); x > 1 {	
+	if x := float64(nodes_count) / float64(c.EntriesPerPage); x > 1 {
 		pages = math.Ceil(x)
 		if pages < float64(c.CurrentPage) {
 			c.CurrentPage = int(pages)
@@ -1217,7 +1215,7 @@ func (c *CLIENT) ReloadTableSettings() {
 			addclass = "current"
 		}
 		final_div += fmt.Sprintf(topage, i, addclass) + " "
-		if x := i+1; x > num_pages && c.CurrentPage < i {
+		if x := i + 1; x > num_pages && c.CurrentPage < i {
 			final_div += tonext
 		}
 	}
@@ -1241,7 +1239,7 @@ func (c *CLIENT) ShowHideModal(id string, event string) {
 			}
 			return nil
 		})
-		c.Objects.Listeners["Modal"] = &listener
+		c.Objects.Listeners["Modal"] = listener
 	}
 	if event == "show" {
 		doc.Get("body").Call("addEventListener", "click", c.Objects.Listeners["Modal"])
@@ -1249,8 +1247,9 @@ func (c *CLIENT) ShowHideModal(id string, event string) {
 	}
 	if event == "hide" {
 		doc.Get("body").Call("removeEventListener", "click", c.Objects.Listeners["Modal"])
+		c.Objects.Listeners["Modal"].Release()
 		delete(c.Objects.Listeners, "Modal")
-		modal.Get("style").Set("display", "none")		
+		modal.Get("style").Set("display", "none")
 	}
 	return
 }
@@ -1343,16 +1342,16 @@ func (c *CLIENT) handlingViewEnd() error {
 		}
 		doc := js.Global().Get("document")
 		at_div := doc.Call("getElementById", "attention")
-		if at_div.Truthy() {		
+		if at_div.Truthy() {
 			data := map[string]interface{}{
-											"LANG": c.LANG,
-											"Hash": c.Hash,
+				"LANG": c.LANG,
+				"Hash": c.Hash,
 			}
 			html := at.String()
 			if err, s := c.handlingTemplate(&html, &data); err == nil {
 				at_div.Set("innerHTML", s)
 				c.W.ShowById("attention")
-			} else {	
+			} else {
 				fmt.Println(err.Error())
 				return err
 			}
@@ -1364,7 +1363,7 @@ func (c *CLIENT) handlingViewEnd() error {
 	return nil
 }
 
-func (c *CLIENT) handlingLangPages(view, locale string)  error {
+func (c *CLIENT) handlingLangPages(view, locale string) error {
 	if view == "view_src" {
 		if err := c.handlingViewStart(); err != nil {
 			fmt.Println(err.Error())
@@ -1377,7 +1376,7 @@ func (c *CLIENT) handlingLangPages(view, locale string)  error {
 		}
 	}
 	dom := js.Global().Get(view)
-	if  !dom.Truthy() {
+	if !dom.Truthy() {
 		return errors.New("Element is not Truthy")
 	}
 	html := dom.String()
@@ -1415,7 +1414,7 @@ func (c *CLIENT) checkOnline(nodeid int) {
 		return
 	}
 
-	nodediv := doc.Call("getElementById", "Node-" + fmt.Sprintf("%v", sid))
+	nodediv := doc.Call("getElementById", "Node-"+fmt.Sprintf("%v", sid))
 	if !nodediv.Truthy() {
 		fmt.Println("The node is not exists in the node table")
 		return
@@ -1432,11 +1431,11 @@ func (c *CLIENT) checkOnline(nodeid int) {
 	}
 
 	gen.Set("innerHTML", fmt.Sprintf(nodelookupbody, sid))
-	modal_title.Set("textContent", c.LANG.Modal["nodeLookup"]["title"] + " " + fmt.Sprintf("(IP: %[1]v; ID: %[2]v)", ip.String(), sid))
+	modal_title.Set("textContent", c.LANG.Modal["nodeLookup"]["title"]+" "+fmt.Sprintf("(IP: %[1]v; ID: %[2]v)", ip.String(), sid))
 
-	c.W.HideById("nodeLookupErr-" +sid)
-	c.W.HideById("nodeLookupInfo-" +sid)
-	c.W.ShowById("nodeLookupLoading-" +sid)
+	c.W.HideById("nodeLookupErr-" + sid)
+	c.W.HideById("nodeLookupInfo-" + sid)
+	c.W.ShowById("nodeLookupLoading-" + sid)
 	c.WsSend("getnodedetails", data)
 	c.ShowHideModal("nodeLookup", "show")
 }
@@ -1479,7 +1478,7 @@ func (c *CLIENT) switchLangActive() error {
 	if !sLang.Truthy() {
 		s := "switchLang div is not Truthy"
 		fmt.Println(s)
-		return errors.New(s)			
+		return errors.New(s)
 	}
 	n := sLang.Get("childElementCount").Int()
 	for i := 0; i < n; i++ {
@@ -1491,7 +1490,7 @@ func (c *CLIENT) switchLangActive() error {
 		if l.Get("classList").Call("contains", "active").Truthy() {
 			l.Get("classList").Call("remove", "active")
 		}
-		if id == "lang_" + c.Lang {
+		if id == "lang_"+c.Lang {
 			l.Get("classList").Call("add", "active")
 		}
 	}
@@ -1504,15 +1503,15 @@ func (c *CLIENT) Init() {
 	c.Conf.DefaultLanguage = "en_US"
 	c.Conf.DefaultEntriesPerPage = 50
 	c.CurrentPage = 1
-	c.Cached = &Cached{Pages: map[string]string{}, Lang: map[string]*LANG{},}
+	c.Cached = &Cached{Pages: map[string]string{}, Lang: map[string]*LANG{}}
 	c.Debug = true
-	c.Objects = &Objects{Listeners:map[string]*js.Func{},}
-	c.mux = &Mutexes{AutoUpdater: &sync.RWMutex{}, Nodes: &sync.Mutex{}, NodesSummary: &sync.Mutex{}, StartView: &sync.Mutex{}, Websocket: &sync.Mutex{},}
+	c.Objects = &Objects{Listeners: map[string]js.Func{}}
+	c.mux = &Mutexes{AutoUpdater: &sync.RWMutex{}, Nodes: &sync.Mutex{}, NodesSummary: &sync.Mutex{}, StartView: &sync.Mutex{}, Websocket: &sync.Mutex{}}
 	c.NodesSummary = map[string]map[string]float64{}
 	c.AutoUpdaterStartCh = make(chan bool)
 	c.AutoUpdaterStopCh = make(chan bool)
 	c.PingPongStopCh = make(chan bool)
-	
+
 	c.apiMethods = map[string]func(*WSReply) interface{}{}
 	c.apiMethods["auth"] = c.apiAuth
 	c.apiMethods["logout"] = c.apiLogout
@@ -1573,25 +1572,25 @@ func (c *CLIENT) Run() {
 	loaded := make(chan struct{})
 	_, doc := c.W.Get("document")
 	switch l := doc.Get("readyState").String(); l {
-		case "loading":
-			doc.Call("addEventListener", "DOMContentLoaded", js.FuncOf(func(_ js.Value, _ []js.Value) interface{} {
-				close(loaded)
-				return nil
-			}))
-		case "complete", "interactive":
+	case "loading":
+		doc.Call("addEventListener", "DOMContentLoaded", js.FuncOf(func(_ js.Value, _ []js.Value) interface{} {
 			close(loaded)
-		default:
-			fmt.Println("Unexpected document.ReadyState: ", l)
-			return
+			return nil
+		}))
+	case "complete", "interactive":
+		close(loaded)
+	default:
+		fmt.Println("Unexpected document.ReadyState: ", l)
+		return
 	}
 
 	<-loaded
 
 	var (
-		hash string
-		sort1 string
+		hash      string
+		sort1     string
 		sort_type string
-		err error
+		err       error
 	)
 
 	if err, entries := c.W.LocalStorage("get", "entriesPerPage"); err == nil {
@@ -1701,20 +1700,20 @@ func (c *CLIENT) AutoUpdater() {
 	ticker := time.NewTicker(reset)
 	countdown := time.NewTicker(1000 * time.Millisecond)
 	cd_mux := &sync.Mutex{}
-	
+
 	ch_writer := make(chan int)
 	pagewriter := func() {
 		for {
 			select {
-				case x := <-ch_writer:
-					c.RefreshStatus(x)
-					if x == -100 {
-						return
-					}
+			case x := <-ch_writer:
+				c.RefreshStatus(x)
+				if x == -100 {
+					return
+				}
 			}
 		}
 	}
-	
+
 	defer ticker.Stop()
 	defer countdown.Stop()
 	for {
@@ -1727,28 +1726,28 @@ func (c *CLIENT) AutoUpdater() {
 			go pagewriter()
 			for {
 				select {
-					case <-c.AutoUpdaterStopCh:
-						ticker.Reset(reset)
-						ch_writer <- -100
-						countdown.Stop()
-						c.mux.AutoUpdater.Lock()
-						c.AutoUpdaterIsStarted = false
-						c.mux.AutoUpdater.Unlock()
-						fmt.Println("AutoUpdater has stopped")
-						return
-					case <-ticker.C:
-						ticker.Reset(normal)
-						countdown.Reset(1000 * time.Millisecond)
-						cd_mux.Lock()
-						timetoupdate = 61
-						cd_mux.Unlock()
-						c.WsGetFullstack()
+				case <-c.AutoUpdaterStopCh:
+					ticker.Reset(reset)
+					ch_writer <- -100
+					countdown.Stop()
+					c.mux.AutoUpdater.Lock()
+					c.AutoUpdaterIsStarted = false
+					c.mux.AutoUpdater.Unlock()
+					fmt.Println("AutoUpdater has stopped")
+					return
+				case <-ticker.C:
+					ticker.Reset(normal)
+					countdown.Reset(1000 * time.Millisecond)
+					cd_mux.Lock()
+					timetoupdate = 61
+					cd_mux.Unlock()
+					c.WsGetFullstack()
 					break
-					case <-countdown.C:
-						cd_mux.Lock()
-						timetoupdate = timetoupdate - 1
-						ch_writer <- timetoupdate
-						cd_mux.Unlock()
+				case <-countdown.C:
+					cd_mux.Lock()
+					timetoupdate = timetoupdate - 1
+					ch_writer <- timetoupdate
+					cd_mux.Unlock()
 					break
 				}
 			}
